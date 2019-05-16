@@ -143,16 +143,20 @@ class LineDialog(val context: VideoActivity): Dialog(context, R.style.AppTheme_D
                         Snackbar.make(view, "数据已导出至剪贴板", Snackbar.LENGTH_LONG).show()
                     }
                     providerList.size - 1 -> {
+                        val addProvider = { it: VideoProvider.ProviderInfo ->
+                            val oldProvider = videoProvider.getProvider(it.site)
+                            if(oldProvider != null)
+                                AlertDialog.Builder(context).setMessage("接口 ${it.title}(${it.site}) 与现有接口 ${oldProvider.title}(${oldProvider.site}) 重复")
+                                    .setPositiveButton("替换"){ _: DialogInterface, _: Int ->
+                                        videoProvider.addProvider(it)
+                                    }.setNegativeButton("取消"){ _: DialogInterface, _: Int -> }.show()
+                            else videoProvider.addProvider(it)
+                        }
                         //inport
                         JsonUtil.toEntity<List<VideoProvider.ProviderInfo>>(clipboardManager.primaryClip?.getItemAt(0)?.text?.toString()?:"", object: TypeToken<List<VideoProvider.ProviderInfo>>(){}.type)?.let{
-                            it.forEach {
-                                val oldProvider = videoProvider.getProvider(it.site)
-                                if(oldProvider != null)
-                                    AlertDialog.Builder(context).setMessage("接口 ${it.title}(${it.site}) 与现有接口 ${oldProvider.title}(${oldProvider.site}) 重复")
-                                        .setPositiveButton("替换"){ _: DialogInterface, _: Int ->
-                                            videoProvider.addProvider(it)
-                                        }.setNegativeButton("取消"){ _: DialogInterface, _: Int -> }.show()
-                                else videoProvider.addProvider(it) }
+                            it.forEach { addProvider(it) }
+                        }?:JsonUtil.toEntity(clipboardManager.primaryClip?.getItemAt(0)?.text?.toString()?:"", VideoProvider.ProviderInfo::class.java)?.let{
+                            addProvider(it)
                         }?:{
                             Snackbar.make(view, "剪贴板没有数据", Snackbar.LENGTH_LONG).show()
                         }()
