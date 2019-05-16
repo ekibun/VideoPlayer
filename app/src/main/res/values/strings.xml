@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">VideoPlayer</string>
+
+    <string name="provide_activity_label">编辑接口</string>
+
+    <string name="download_notification_channel_name">视频下载</string>
+</resources>
