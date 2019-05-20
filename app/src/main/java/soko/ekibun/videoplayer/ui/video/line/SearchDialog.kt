@@ -1,5 +1,6 @@
 package soko.ekibun.videoplayer.ui.video.line
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -15,6 +16,7 @@ import soko.ekibun.videoplayer.bean.VideoSubject
 import soko.ekibun.videoplayer.model.VideoProvider
 
 object SearchDialog {
+    @SuppressLint("InflateParams")
     fun showDialog(context: Activity, subject: VideoSubject, callback:(VideoProvider.LineInfo, Boolean)->Unit){
         val view =context.layoutInflater.inflate(R.layout.dialog_search_line, null)
         val dialog = BottomSheetDialog(context)
@@ -45,7 +47,7 @@ object SearchDialog {
             true
         }
         view.list_search.adapter = adapter
-        val searchCall = ArrayList<JsEngine.ScriptTask<List<VideoProvider.LineInfo>>>()
+        val searchCall = ArrayList<Pair<VideoProvider.ProviderInfo, JsEngine.ScriptTask<List<VideoProvider.LineInfo>>>>()
 
         var pos = 0
         view.item_video_api.text = providers[pos]?.title?:""
@@ -60,21 +62,21 @@ object SearchDialog {
         view.item_search.setOnClickListener {
             adapter.setNewData(null)
             val key = view.item_search_key.text.toString()
-            searchCall.forEach { it.cancel(true) }
+            searchCall.forEach { it.second.cancel(true) }
             searchCall.clear()
 
             val jsEngine = App.from(context).jsEngine
             searchCall.addAll(if(pos == 0){
                 providers.filter { it.search.isNotEmpty() }.map {
-                    it.search("search_${it.site}", jsEngine, key)
+                    Pair(it, it.search("search_${it.site}", jsEngine, key))
                 }
-            }else listOf(providers[pos].let{ it.search("search_${it.site}", jsEngine, key) }))
+            }else listOf(providers[pos].let{ Pair(it, it.search("search_${it.site}", jsEngine, key)) }))
 
             searchCall.forEach {
-                it.enqueue({
-                    adapter.addData(it)
-                }, {
-                    Snackbar.make(view, it.message.toString(), Snackbar.LENGTH_LONG).show()
+                it.second.enqueue({lines->
+                    adapter.addData(lines)
+                }, {e->
+                    Snackbar.make(dialog.window?.decorView?: view, "${it.first.title}: ${e.message}", Snackbar.LENGTH_LONG).show()
                 })
             }
         }

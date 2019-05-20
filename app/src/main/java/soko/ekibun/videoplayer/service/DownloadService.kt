@@ -130,7 +130,7 @@ class DownloadService : Service() {
     private fun createDownloader(videoCache: VideoCache, key: String): Downloader{
         val dataSourceFactory =VideoModel.createDataSourceFactory(this, videoCache.video, true)
         val downloaderFactory = DefaultDownloaderFactory(DownloaderConstructorHelper(App.from(this).downloadCache, dataSourceFactory))
-        return downloaderFactory.createDownloader(DownloadRequest(videoCache.video.url, videoCache.type, Uri.parse(videoCache.video.url), videoCache.streamKeys, videoCache.video.url, null))
+        return downloaderFactory.createDownloader(DownloadRequest(videoCache.video.url, videoCache.type, Uri.parse(videoCache.video.url), videoCache.streamKeys, null, null))
     }
 
     private fun sendBroadcast(episode: VideoEpisode, subject: VideoSubject, percent: Float, bytes: Long, hasCache: Boolean? = null){

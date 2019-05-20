@@ -22,6 +22,7 @@ class JsEngine(val context: App) {
         var lastTime = System.currentTimeMillis()
         context.handler.post {
             val webview = webviewList.getOrPut(key){ BackgroundWebView(context) }
+            webview.settings.userAgentString = header["User-Agent"]?:webview.settings.userAgentString
             val map = HashMap<String, String>()
             map["referer"]=url
             map.putAll(header)
@@ -80,7 +81,7 @@ class JsEngine(val context: App) {
             |           return "" + new java.lang.String(_http.inflate(bytes, true));
             |       }else if(encoding == "gzip"){
             |           return "" + new java.lang.String(_http.inflate(bytes, false));
-            |       }else return "" + new java.lang.String(bytes);
+            |       }else return "" + new java.lang.String(bytes, encoding);
             |   }
             |}
             |var webview = {

@@ -166,6 +166,7 @@
                         android:id="@+id/line_list"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:overScrollMode="never"
                         tools:listitem="@layout/item_provider"/>
                 <TextView
                         android:padding="12dp"

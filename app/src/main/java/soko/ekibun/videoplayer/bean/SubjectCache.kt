@@ -8,8 +8,8 @@ data class SubjectCache(
     val videoList: List<VideoCache>
 ) : Parcelable {
     constructor(source: Parcel) : this(
-        source.readParcelable<VideoSubject>(VideoSubject::class.java.classLoader),
-        source.createTypedArrayList(VideoCache.CREATOR)
+        source.readParcelable<VideoSubject>(VideoSubject::class.java.classLoader)!!,
+        source.createTypedArrayList(VideoCache.CREATOR)!!
     )
 
     override fun describeContents() = 0

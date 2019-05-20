@@ -30,7 +30,7 @@ class SystemUIPresenter(private val context: VideoActivity){
         }
     }
 
-    fun updateRatio(){
+    private fun updateRatio(){
         val lp = context.player_container.layoutParams as ConstraintLayout.LayoutParams
         lp.dimensionRatio = if(isLandscape) ({
             val screenSize = AppUtil.getScreenSize(context)
@@ -40,8 +40,9 @@ class SystemUIPresenter(private val context: VideoActivity){
         val lp_cf = context.controller_frame.layoutParams as ConstraintLayout.LayoutParams
         lp_cf.dimensionRatio = lp.dimensionRatio
         context.controller_frame.layoutParams = lp_cf
-        Log.v("updateRatio", lp.dimensionRatio)
-        context.videoPresenter.resizeVideoSurface()
+        context.player_container.post {
+            context.videoPresenter.resizeVideoSurface()
+        }
     }
 
     fun appbarCollapsible(enable:Boolean){

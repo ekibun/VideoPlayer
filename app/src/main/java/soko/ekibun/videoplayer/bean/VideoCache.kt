@@ -15,8 +15,8 @@ data class VideoCache(
     var percentDownloaded: Float = 0f
 ) : Parcelable {
     constructor(source: Parcel) : this(
-        source.readParcelable<VideoEpisode>(VideoEpisode::class.java.classLoader),
-        source.readString(),
+        source.readParcelable<VideoEpisode>(VideoEpisode::class.java.classLoader)!!,
+        source.readString()!!,
         ArrayList(),
         VideoProvider.VideoRequest(""),
         source.readLong(),

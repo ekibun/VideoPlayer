@@ -1,6 +1,5 @@
 package soko.ekibun.util
 
-import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import androidx.annotation.Keep
