@@ -12,7 +12,6 @@ import soko.ekibun.videoplayer.bean.VideoCache
 import soko.ekibun.videoplayer.bean.VideoEpisode
 import soko.ekibun.videoplayer.bean.VideoSubject
 import soko.ekibun.videoplayer.model.SubjectProvider
-import soko.ekibun.videoplayer.model.VideoCacheModel
 import soko.ekibun.videoplayer.model.VideoProvider
 import soko.ekibun.videoplayer.service.DownloadService
 import soko.ekibun.videoplayer.ui.video.line.LineDialog
@@ -26,8 +25,8 @@ class SubjectPresenter(val context: VideoActivity) {
         override fun onSubjectChange(subject: VideoSubject) {
             subjectView.updateSubject(subject)
         }
-        override fun onEpisodeListChange(eps: List<VideoEpisode>) {
-            subjectView.updateEpisode(eps, subject)
+        override fun onEpisodeListChange(eps: List<VideoEpisode>, merge: Boolean) {
+            subjectView.updateEpisode(eps, subject, merge)
         }
     })
 

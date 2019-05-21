@@ -60,8 +60,6 @@ class VideoActivity : SwipeBackActivity() {
         if(videoPresenter.videoModel.player.duration >0 && pauseOnStop)
             videoPresenter.doPlayPause(true)
         pauseOnStop = false
-
-        subjectPresenter.refreshSubject()
     }
 
     override fun onStop() {
@@ -248,6 +246,7 @@ class VideoActivity : SwipeBackActivity() {
         if (requestCode == REQUEST_PROVIDER && resultCode == RESULT_OK) {//Provider
             loadProviderCallback?.invoke(JsonUtil.toEntity(data?.getStringExtra(ProviderActivity.EXTRA_PROVIDER_INFO)?:"", VideoProvider.ProviderInfo::class.java))
         }
+        subjectPresenter.refreshSubject()
     }
 
     companion object {

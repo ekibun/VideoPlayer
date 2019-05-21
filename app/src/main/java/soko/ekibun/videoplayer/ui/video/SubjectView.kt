@@ -98,31 +98,31 @@ class SubjectView(val context: VideoActivity) {
             .load(subject.image)
             .apply(RequestOptions.bitmapTransform(BlurTransformation(25, 8)))
             .into(context.item_cover_blur)
-        updateEpisode(subject.eps, subject)
+        updateEpisode(subject.eps, subject, false)
         //collection
         context.item_collect_info.text = if(subject.collect.isNullOrEmpty()) "收藏" else subject.collect
         context.item_collect_image.setImageDrawable(context.resources.getDrawable(
             if(subject.collect.isNullOrEmpty()) R.drawable.ic_heart_outline else R.drawable.ic_heart, context.theme))
     }
 
-    var bangumiEpisode: List<VideoEpisode> = ArrayList()
+    var subjectEpisode: List<VideoEpisode> = ArrayList()
     private var scrolled = false
     @SuppressLint("SetTextI18n")
-    fun updateEpisode(episodes: List<VideoEpisode>?, subject: VideoSubject){
+    fun updateEpisode(episodes: List<VideoEpisode>?, subject: VideoSubject, merge: Boolean){
         if(context.isDestroyed) return
         if(Thread.currentThread() != context.mainLooper.thread){
-            context.runOnUiThread { updateEpisode(episodes, subject) }
+            context.runOnUiThread { updateEpisode(episodes, subject, merge) }
             return
         }
 
         val cacheEpisode = App.from(context).videoCacheModel.getSubjectCacheList(subject)?.videoList?.map { it.episode }?:ArrayList()
-        bangumiEpisode = episodes?: bangumiEpisode
-        val eps = bangumiEpisode.filter { (it.status?:"") in listOf("Air") }
+        subjectEpisode = if(merge) (episodes?:listOf()).plus(subjectEpisode).distinctBy { it.id + it.parseSort() } else episodes?: subjectEpisode
+        val eps = subjectEpisode.filter { (it.status?:"") in listOf("Air") }
         context.episode_detail.text = (if(cacheEpisode.isNotEmpty()) "已缓存 ${cacheEpisode.size} 话" else "") +
-                (if(cacheEpisode.isNotEmpty() && bangumiEpisode.isNotEmpty()) " / " else "")+
-                (if(bangumiEpisode.isNotEmpty()) (if(eps.size == bangumiEpisode.size) "全 ${eps.size} 话" else eps.lastOrNull()?.let{ "更新到${it.parseSort()}" }?:"尚未更新") else "")
+                (if(cacheEpisode.isNotEmpty() && subjectEpisode.isNotEmpty()) " / " else "")+
+                (if(subjectEpisode.isNotEmpty()) (if(eps.size == subjectEpisode.size) "全 ${eps.size} 话" else eps.lastOrNull()?.let{ "更新到${it.parseSort()}" }?:"尚未更新") else "")
         val maps = LinkedHashMap<String, List<VideoEpisode>>()
-        bangumiEpisode.plus(cacheEpisode).distinctBy { it.id }.forEach {
+        subjectEpisode.plus(cacheEpisode).distinctBy { it.id }.forEach {
             val key = it.cat?:""
             maps[key] = (maps[key]?:ArrayList()).plus(it)
         }

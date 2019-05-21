@@ -15,7 +15,7 @@ import soko.ekibun.videoplayer.callback.ISubjectCallback
 class SubjectProvider(val context: AppCompatActivity, val listener: OnChangeListener): ServiceConnection {
     interface OnChangeListener{
         fun onSubjectChange(subject: VideoSubject)
-        fun onEpisodeListChange(eps: List<VideoEpisode>)
+        fun onEpisodeListChange(eps: List<VideoEpisode>, merge: Boolean)
     }
 
     var subject = context.intent.getParcelableExtra<VideoSubject>(EXTRA_SUBJECT)!!
@@ -37,7 +37,7 @@ class SubjectProvider(val context: AppCompatActivity, val listener: OnChangeList
             }
             REQUEST_UPADTE_PROGRESS -> {
                 val eps = data?.getParcelableArrayListExtra<VideoEpisode>(EXTRA_EPISODE_LIST)?: return
-                listener.onEpisodeListChange(eps)
+                listener.onEpisodeListChange(eps, true)
             }
         }
     }
@@ -55,7 +55,7 @@ class SubjectProvider(val context: AppCompatActivity, val listener: OnChangeList
     fun refreshEpisode() {
         aidl?.refreshEpisode(subject, object: IListEpisodeCallback.Stub() {
             override fun onFinish(result: MutableList<VideoEpisode>) {
-                listener.onEpisodeListChange(result)
+                listener.onEpisodeListChange(result, false)
             }
             override fun onReject(reason: String) {}
         })
