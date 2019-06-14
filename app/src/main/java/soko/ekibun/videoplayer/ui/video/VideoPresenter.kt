@@ -83,16 +83,10 @@ class VideoPresenter(val context: VideoActivity) {
                         updateProgress()
                         controller.updatePrevNext(prevEpisode() != null, nextEpisode() != null)
                         context.item_mask.visibility = View.VISIBLE
-                        context.toolbar.visibility = View.VISIBLE
-                        if (context.systemUIPresenter.isLandscape)
-                            context.systemUIPresenter.setSystemUiVisibility(SystemUIPresenter.Visibility.FULLSCREEN_IMMERSIVE)
                     } else {
                         context.item_mask.visibility = View.INVISIBLE
-                        if (!context.systemUIPresenter.isLandscape || offset == 0)
-                            context.toolbar.visibility = View.INVISIBLE
-                        if (context.systemUIPresenter.isLandscape && offset == 0)
-                            context.systemUIPresenter.setSystemUiVisibility(SystemUIPresenter.Visibility.FULLSCREEN)
                     }
+                    context.systemUIPresenter.updateSystemUI()
                 }
             }
         }){ context.systemUIPresenter.isLandscape }
@@ -141,10 +135,8 @@ class VideoPresenter(val context: VideoActivity) {
                         startAt = null
                     }
                 }
-                if (!controller.isShow) {
-                    context.item_mask.visibility = View.INVISIBLE
-                    context.toolbar.visibility = View.INVISIBLE
-                }
+                if (!controller.isShow) context.item_mask.visibility = View.INVISIBLE
+                context.systemUIPresenter.updateSystemUI()
                 controller.updateLoading(false)
                 endFlag = true
             }
@@ -175,26 +167,9 @@ class VideoPresenter(val context: VideoActivity) {
         })
     }
 
-
-    var offset = 0
     fun init(){
         videoView.updateProgress(progressModel.getProgress(subject))
 
-        context.app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener{ _, verticalOffset ->
-            val visible = if(verticalOffset != 0 || controller.isShow || context.video_surface_container.visibility != View.VISIBLE) View.VISIBLE else View.INVISIBLE
-            offset = verticalOffset
-            if(context.systemUIPresenter.isLandscape && context.video_surface_container.visibility == View.VISIBLE && visible != context.toolbar.visibility)
-                context.systemUIPresenter.setSystemUiVisibility(if(visible == View.VISIBLE) SystemUIPresenter.Visibility.FULLSCREEN_IMMERSIVE else SystemUIPresenter.Visibility.FULLSCREEN)
-            if(context.systemUIPresenter.isLandscape && context.video_surface_container.visibility == View.VISIBLE){
-                if(offset == 0){
-                    context.window.statusBarColor = Color.TRANSPARENT
-                    context.window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-                }else{
-                    context.window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-                }
-            }
-            context.toolbar.visibility = visible
-        })
         context.hide_danmaku_panel.setOnClickListener {
             videoView.showDanmakuSetting(false)
         }

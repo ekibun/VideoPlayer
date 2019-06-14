@@ -18,16 +18,36 @@ class SystemUIPresenter(private val context: VideoActivity){
         updateRatio()
     }
 
+    fun updateSystemUI(){
+        context.runOnUiThread {
+            if(isLandscape) {
+                if( context.video_surface_container.visibility != View.VISIBLE || context.item_mask.visibility == View.VISIBLE || offset != 0){
+                    setSystemUiVisibility(Visibility.FULLSCREEN_IMMERSIVE)
+                    context.toolbar.visibility = View.VISIBLE
+                }else{
+                    setSystemUiVisibility(Visibility.FULLSCREEN)
+                    context.toolbar.visibility = View.INVISIBLE
+                }
+            } else {
+                setSystemUiVisibility(Visibility.IMMERSIVE)
+                context.toolbar.visibility = if(context.video_surface_container.visibility == View.VISIBLE && offset == 0) context.item_mask.visibility else View.VISIBLE
+            }
+            context.videoPresenter.danmakuPresenter.sizeScale = when{
+                isInPictureInPictureMode -> 0.7f
+                isLandscape -> 1.1f
+                else-> 0.8f
+            }
+        }
+    }
+
+    var offset = 0
     init{
         if(Build.VERSION.SDK_INT >= 28)
             context.window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        context.window.decorView.setOnSystemUiVisibilityChangeListener{
-            if(it == 0)
-                if(isLandscape) {
-                    if(!showMask) setSystemUiVisibility(Visibility.FULLSCREEN)
-                    else setSystemUiVisibility(Visibility.FULLSCREEN_IMMERSIVE)
-                } else setSystemUiVisibility(Visibility.IMMERSIVE)
-        }
+        context.app_bar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener{ _, verticalOffset ->
+            offset = verticalOffset
+            updateSystemUI()
+        })
     }
 
     private fun updateRatio(){
@@ -61,26 +81,18 @@ class SystemUIPresenter(private val context: VideoActivity){
     }
 
     fun onWindowModeChanged(isInMultiWindowMode: Boolean, isInPictureInPictureMode: Boolean, newConfig: Configuration?) {
-        isLandscape = isInPictureInPictureMode || (newConfig?.orientation != Configuration.ORIENTATION_PORTRAIT && !isInMultiWindowMode)
-
-        if (isLandscape) {
-            if(!showMask) setSystemUiVisibility(Visibility.FULLSCREEN)
-            else setSystemUiVisibility(Visibility.FULLSCREEN_IMMERSIVE)
-        }else {
-            setSystemUiVisibility(Visibility.IMMERSIVE)
-        }
+        orientation = newConfig?.orientation?:orientation
+        updateSystemUI()
         updateRatio()
         context.videoPresenter.videoView.showDanmakuSetting(false)
-        context.videoPresenter.danmakuPresenter.sizeScale = when{
-            isInPictureInPictureMode -> 0.7f
-            isLandscape -> 1.1f
-            else-> 0.8f
-        }
     }
-    var isLandscape = false
-    var showMask = false
-    fun setSystemUiVisibility(visibility: Visibility){
-        showMask = visibility == Visibility.FULLSCREEN_IMMERSIVE
+
+    val isInPictureInPictureMode get()= Build.VERSION.SDK_INT >= 24 && context.isInPictureInPictureMode
+    val isInMultiWindowMode  get()= Build.VERSION.SDK_INT >= 24 && context.isInMultiWindowMode
+    val isLandscape get()= isInPictureInPictureMode || (orientation != Configuration.ORIENTATION_PORTRAIT && !isInMultiWindowMode)
+    var orientation = Configuration.ORIENTATION_PORTRAIT
+    private fun setSystemUiVisibility(visibility: Visibility){
+        Log.v("setSystemUiVisibility", visibility.name)
         when(visibility){
             Visibility.FULLSCREEN -> {
                 context.root_layout.fitsSystemWindows=true
@@ -90,7 +102,7 @@ class SystemUIPresenter(private val context: VideoActivity){
                 context.controller_frame_container.fitsSystemWindows=true
                 context.window.statusBarColor = Color.TRANSPARENT
                 //content.window.navigationBarColor = Color.TRANSPARENT
-                context.window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                updateSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                         or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
@@ -106,7 +118,7 @@ class SystemUIPresenter(private val context: VideoActivity){
                 context.toolbar_layout.fitsSystemWindows = true
                 context.window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
 
-                context.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                updateSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
             }
             Visibility.FULLSCREEN_IMMERSIVE -> {
                 context.root_layout.fitsSystemWindows=true
@@ -115,9 +127,14 @@ class SystemUIPresenter(private val context: VideoActivity){
                 context.toolbar_layout.fitsSystemWindows = true
                 context.controller_frame_container.fitsSystemWindows=true
 
-                context.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                updateSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
             }
         }
+    }
+
+    private fun updateSystemUiVisibility(visibility: Int){
+        context.window.decorView.systemUiVisibility = 0
+        context.window.decorView.systemUiVisibility = visibility
     }
 
     enum class Visibility{
