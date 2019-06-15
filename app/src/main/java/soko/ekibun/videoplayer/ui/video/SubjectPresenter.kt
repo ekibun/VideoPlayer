@@ -118,31 +118,13 @@ class SubjectPresenter(val context: VideoActivity) {
                 refreshLines()
             }
             subjectView.lineAdapter.setOnItemLongClickListener { _, _, position ->
-                LineDialog.showDialog(context, subject, it.providers[position]){ info, newLine->
-                    when {
-                        info == null -> {
-                            it.providers.removeAt(position)
-                            it.defaultProvider -= if(it.defaultProvider > position) 1 else 0
-                            it.defaultProvider = Math.max(0, Math.min(it.providers.size -1, it.defaultProvider))
-                        }
-                        newLine -> it.providers.add(info)
-                        else -> it.providers[position] = info
-                    }
-                    lineInfoModel.saveInfos(subject, it)
-                    refreshLines()
-                }
+                LineDialog.showDialog(context, subject, it.providers[position]){ refreshLines() }
                 true
             }
         }
 
         context.item_lines.setOnClickListener{
-            LineDialog.showDialog(context, subject){ info, _->
-                if(info == null) return@showDialog
-                val lineInfoList = lineInfoModel.getInfos(subject)?: VideoProvider.LineInfoList()
-                lineInfoList.providers.add(info)
-                lineInfoModel.saveInfos(subject, lineInfoList)
-                refreshLines()
-            }
+            LineDialog.showDialog(context, subject){ refreshLines() }
         }
     }
 
