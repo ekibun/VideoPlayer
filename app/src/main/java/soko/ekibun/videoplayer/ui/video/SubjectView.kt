@@ -116,7 +116,9 @@ class SubjectView(val context: VideoActivity) {
         }
 
         val cacheEpisode = (App.from(context).videoCacheModel.getSubjectCacheList(subject)?.videoList?.map { it.episode }?:ArrayList()).sortedBy { it.sort }.sortedBy { it.cat }
-        subjectEpisode = if(merge) (episodes?:listOf()).plus(subjectEpisode).distinctBy { it.id + it.parseSort() } else episodes?: subjectEpisode
+        val newSubjectEpisode = if(merge) (episodes?:listOf()).plus(subjectEpisode).distinctBy { it.id + it.parseSort() } else episodes?: subjectEpisode
+        if(subjectEpisode.size != newSubjectEpisode.size) scrolled = false
+        subjectEpisode = newSubjectEpisode
         val eps = subjectEpisode.filter { (it.status?:"") in listOf("Air") }
         context.episode_detail.text = (if(cacheEpisode.isNotEmpty()) "已缓存 ${cacheEpisode.size} 话" else "") +
                 (if(cacheEpisode.isNotEmpty() && subjectEpisode.isNotEmpty()) " / " else "")+

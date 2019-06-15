@@ -92,7 +92,12 @@ class VideoModel(private val context: Context, private val onAction: Listener) {
             videoInfoCall[key] = provider.getVideoInfo(key, jsEngine, info, episode)
             videoInfoCall[key]?.enqueue({ video ->
                 onGetVideoInfo(video, null)
-                videoCall[key] = provider.getVideo(key, jsEngine, video)
+                if(video.site == ""){
+                    onGetVideo(VideoProvider.VideoRequest(video.url), null, null)
+                    return@enqueue
+                }
+                val videoProvider = App.from(context).videoProvider.getProvider(video.site)!!
+                videoCall[key] = videoProvider.getVideo(key, jsEngine, video)
                 videoCall[key]?.enqueue({
                     onGetVideo(it, null, null)
                 }, { onGetVideo(null, null, it) })

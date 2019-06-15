@@ -1,7 +1,6 @@
 package soko.ekibun.videoplayer.ui.video.line
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ListPopupWindow
@@ -14,10 +13,13 @@ import soko.ekibun.videoplayer.JsEngine
 import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.bean.VideoSubject
 import soko.ekibun.videoplayer.model.VideoProvider
+import soko.ekibun.videoplayer.ui.video.VideoActivity
 
 object SearchDialog {
     @SuppressLint("InflateParams")
-    fun showDialog(context: Activity, subject: VideoSubject, callback:(VideoProvider.LineInfo, Boolean)->Unit){
+    fun showDialog(context: VideoActivity, subject: VideoSubject, callback:()->Unit){
+        val lineInfoModel = App.from(context).lineInfoModel
+
         val view =context.layoutInflater.inflate(R.layout.dialog_search_line, null)
         val dialog = BottomSheetDialog(context)
         dialog.setContentView(view)
@@ -38,11 +40,24 @@ object SearchDialog {
         view.item_search_key.setText(subject.name)
         view.list_search.layoutManager = LinearLayoutManager(context)
         val adapter = SearchLineAdapter()
+        adapter.lines = lineInfoModel.getInfos(subject)
         adapter.setOnItemClickListener { _, _, position ->
-            callback(adapter.data[position], false)
+            val item = adapter.data[position]
+            val exist = adapter.lines?.providers?.firstOrNull { it.site == item.site && it.id == item.id && it.offset == item.offset } != null
+            if(exist) {
+                Snackbar.make(dialog.window?.decorView?: view, "线路已存在，长按编辑此线路", Snackbar.LENGTH_LONG).show()
+                return@setOnItemClickListener
+            }
+            val lines = (adapter.lines?: VideoProvider.LineInfoList())
+            lines.providers.add(adapter.data[position])
+            lineInfoModel.saveInfos(subject, lines)
+            adapter.lines = lines
+            callback()
+            adapter.notifyItemChanged(position)
         }
         adapter.setOnItemLongClickListener { _, _, position ->
-            callback(adapter.data[position], true)
+            val item = adapter.data[position]//?.let { item -> adapter.lines?.providers?.firstOrNull { it.site == item.site && it.id == item.id }?: item }
+            LineDialog.showDialog(context, subject, item, callback)
             dialog.dismiss()
             true
         }

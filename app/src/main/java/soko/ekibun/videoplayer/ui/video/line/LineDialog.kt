@@ -25,7 +25,7 @@ import soko.ekibun.videoplayer.ui.video.VideoActivity
 
 class LineDialog(val context: VideoActivity): Dialog(context, R.style.AppTheme_Dialog) {
     companion object {
-        fun showDialog(context: VideoActivity, subject: VideoSubject, info: VideoProvider.LineInfo? = null, callback: (VideoProvider.LineInfo?, Boolean)->Unit){
+        fun showDialog(context: VideoActivity, subject: VideoSubject, info: VideoProvider.LineInfo? = null, callback: ()->Unit){
             val dialog = LineDialog(context)
             dialog.subject = subject
             dialog.info = info
@@ -46,9 +46,26 @@ class LineDialog(val context: VideoActivity): Dialog(context, R.style.AppTheme_D
 
     lateinit var subject: VideoSubject
     var info: VideoProvider.LineInfo? = null
-    lateinit var callback: (VideoProvider.LineInfo?, Boolean)->Unit
+    lateinit var callback: ()->Unit
     val emptyProvider = VideoProvider.ProviderInfo("", 0, "链接")
     override fun onCreate(savedInstanceState: Bundle?) {
+        val lineInfoModel =  App.from(context).lineInfoModel
+        val lineInfos = lineInfoModel.getInfos(subject)?: VideoProvider.LineInfoList()
+        val setProvider = { newInfo: VideoProvider.LineInfo? ->
+            val position = lineInfos.providers.indexOfFirst { it.id == info?.id && it.site == info?.site && it.offset == info?.offset }
+            when {
+                newInfo == null -> if(position >= 0){
+                    lineInfos.providers.removeAt(position)
+                    lineInfos.defaultProvider -= if(lineInfos.defaultProvider > position) 1 else 0
+                    lineInfos.defaultProvider = Math.max(0, Math.min(lineInfos.providers.size -1, lineInfos.defaultProvider))
+                }
+                position >= 0 -> lineInfos.providers[position] = newInfo
+                else-> lineInfos.providers.add(newInfo)
+            }
+            lineInfoModel.saveInfos(subject, lineInfos)
+            callback()
+        }
+
         super.onCreate(savedInstanceState)
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_add_line, null)
         setContentView(view)
@@ -56,7 +73,7 @@ class LineDialog(val context: VideoActivity): Dialog(context, R.style.AppTheme_D
         view.item_delete.visibility = if(info == null) View.GONE else View.VISIBLE
         view.item_delete.setOnClickListener {
             AlertDialog.Builder(context).setMessage("删除这个线路？").setPositiveButton("确定"){ _: DialogInterface, _: Int ->
-                callback(null, false)
+                setProvider(null)
                 dismiss()
             }.show()
         }
@@ -69,10 +86,8 @@ class LineDialog(val context: VideoActivity): Dialog(context, R.style.AppTheme_D
         info?.let { updateInfo(view, it) }
 
         view.item_search.setOnClickListener {
-            SearchDialog.showDialog(context, subject) {info, longClick ->
-                if(longClick)updateInfo(view, info)
-                else callback(info, true)
-            }
+            SearchDialog.showDialog(context, subject, callback)
+            dismiss()
         }
 
         view.item_file.setOnClickListener {
@@ -84,10 +99,9 @@ class LineDialog(val context: VideoActivity): Dialog(context, R.style.AppTheme_D
 
         view.item_ok.setOnClickListener {
             val provider = view.item_video_api.tag as? VideoProvider.ProviderInfo?:return@setOnClickListener
-            callback(VideoProvider.LineInfo(provider.site, view.item_video_id.text.toString(),
+            setProvider(VideoProvider.LineInfo(provider.site, view.item_video_id.text.toString(),
                 view.item_video_offset.text.toString().toFloatOrNull() ?: 0f,
-                view.item_video_title.text.toString(), view.item_load_danmaku.isEnabled && view.item_load_danmaku.isChecked),
-                false)
+                view.item_video_title.text.toString(), view.item_load_danmaku.isEnabled && view.item_load_danmaku.isChecked))
             dismiss()
         }
 
