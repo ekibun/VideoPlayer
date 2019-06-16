@@ -17,12 +17,23 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:targetApi="n">
+        <activity android:name=".ui.splash.SplashActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".ui.setting.SettingsActivity">
+        </activity>
+
         <service
                 android:name=".service.DownloadCacheProvider"
                 android:enabled="true"
                 android:exported="true">
             <intent-filter>
                 <action android:name="soko.ekibun.videoplayer.downloadcacheprovider"/>
+
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </service>

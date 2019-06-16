@@ -21,10 +21,7 @@ import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.android.synthetic.main.subject_episode.*
-import soko.ekibun.util.AppUtil
-import soko.ekibun.util.JsonUtil
-import soko.ekibun.util.StorageUtil
-import soko.ekibun.util.SwipeBackActivity
+import soko.ekibun.util.*
 import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.bean.VideoEpisode
 import soko.ekibun.videoplayer.bean.VideoSubject
@@ -32,6 +29,7 @@ import soko.ekibun.videoplayer.model.SubjectProvider
 import soko.ekibun.videoplayer.model.VideoProvider
 import soko.ekibun.videoplayer.service.DownloadService
 import soko.ekibun.videoplayer.ui.provider.ProviderActivity
+import soko.ekibun.videoplayer.ui.setting.SettingsActivity
 
 class VideoActivity : SwipeBackActivity() {
     val subjectPresenter by lazy { SubjectPresenter(this) }
@@ -51,10 +49,10 @@ class VideoActivity : SwipeBackActivity() {
 
         registerReceiver(receiver, IntentFilter(ACTION_MEDIA_CONTROL + subjectPresenter.subject.id))
         registerReceiver(downloadReceiver, IntentFilter(DownloadService.getBroadcastAction(subjectPresenter.subject)))
-
+        registerReceiver(networkReceiver, IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"))
     }
 
-    var pauseOnStop = false
+    private var pauseOnStop = false
     override fun onStart() {
         super.onStart()
         if(videoPresenter.videoModel.player.duration >0 && pauseOnStop)
@@ -74,6 +72,7 @@ class VideoActivity : SwipeBackActivity() {
         subjectPresenter.destroy()
         unregisterReceiver(receiver)
         unregisterReceiver(downloadReceiver)
+        unregisterReceiver(networkReceiver)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -105,6 +104,15 @@ class VideoActivity : SwipeBackActivity() {
                 }
             }catch (e: Exception){
                 e.printStackTrace()
+            }
+        }
+    }
+
+    private val networkReceiver = object: BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if(!NetworkUtil.isWifiConnected(context) && videoPresenter.videoModel.player.playWhenReady){
+                videoPresenter.doPlayPause(true)
+                Toast.makeText(context, "正在使用非wifi网络", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -186,6 +194,7 @@ class VideoActivity : SwipeBackActivity() {
             }
             R.id.action_share -> AppUtil.shareString(this, "${subjectPresenter.subject.name}\n${subjectPresenter.subject.url}")
             R.id.action_refresh -> subjectPresenter.refreshSubject()
+            R.id.action_settings -> SettingsActivity.startActivity(this)
         }
         return super.onOptionsItemSelected(item)
     }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <SwitchPreference
+            android:key="check_network"
+            android:defaultValue="true"
+            android:title="非WIFI网络暂停播放" />
+    <SwitchPreference
+            android:key="hide_launcher"
+            android:title="隐藏启动器图标" />
+</PreferenceScreen>

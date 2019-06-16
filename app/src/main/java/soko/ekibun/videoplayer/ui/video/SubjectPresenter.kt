@@ -1,6 +1,7 @@
 package soko.ekibun.videoplayer.ui.video
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Intent
 import com.google.android.exoplayer2.offline.DownloadHelper
 import kotlinx.android.synthetic.main.activity_video.*
@@ -12,7 +13,6 @@ import soko.ekibun.videoplayer.bean.VideoCache
 import soko.ekibun.videoplayer.bean.VideoEpisode
 import soko.ekibun.videoplayer.bean.VideoSubject
 import soko.ekibun.videoplayer.model.SubjectProvider
-import soko.ekibun.videoplayer.model.VideoProvider
 import soko.ekibun.videoplayer.service.DownloadService
 import soko.ekibun.videoplayer.ui.video.line.LineDialog
 import java.io.IOException
@@ -73,7 +73,7 @@ class SubjectPresenter(val context: VideoActivity) {
                 subjectView.episodeDetailAdapter.getViewByPosition(context.episode_detail_list, position, R.id.item_layout)?.let{
                     it.item_download_info.text = if(videoInfo != null)"解析视频地址" else "获取视频信息出错：${error?.message}"
                 }
-            }){request, _, error ->
+            }, {request, _, error ->
                 subjectView.episodeDetailAdapter.getViewByPosition(context.episode_detail_list, position, R.id.item_layout)?.let{
                     it.item_download_info.text = "解析视频地址出错：${error?.message}"
                     if(request == null || request.url.startsWith("/")) return@let
@@ -88,7 +88,11 @@ class SubjectPresenter(val context: VideoActivity) {
                         }
                     })
                 }
-            }
+            }, {
+                AlertDialog.Builder(context).setMessage("正在使用非wifi网络").setPositiveButton("继续缓存"){_, _ -> it() }
+                    .setNegativeButton("取消"){_, _ -> subjectView.episodeDetailAdapter.notifyItemChanged(position) }
+                    .setOnDismissListener { subjectView.episodeDetailAdapter.notifyItemChanged(position) }.show()
+            })
         }
 
         subjectView.episodeDetailAdapter.setOnItemChildLongClickListener { _, _, position ->

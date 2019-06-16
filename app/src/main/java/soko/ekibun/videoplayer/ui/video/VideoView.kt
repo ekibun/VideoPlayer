@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.view.View
 import android.view.animation.AnimationUtils
 import kotlinx.android.synthetic.main.activity_video.*
+import kotlinx.android.synthetic.main.error_frame.*
 import kotlinx.android.synthetic.main.video_player.*
 import soko.ekibun.videoplayer.model.ProgressModel
 import soko.ekibun.videoplayer.ui.view.controller.Controller
@@ -63,23 +64,34 @@ class VideoView(val context: VideoActivity) {
         }
     }
 
+    fun showVideoError(error: String, retry: String, callback: ()->Unit){
+        context.runOnUiThread {
+            context.videoPresenter.doPlayPause(false)
+            context.videoPresenter.controller.doShowHide(false)
+            context.item_error_hint.text = error
+            context.item_retry_button.text = retry
+            context.error_frame.visibility = View.VISIBLE
+            context.item_retry_button.setOnClickListener {
+                context.error_frame.visibility = View.INVISIBLE
+                callback()
+            }
+        }
+    }
+
     fun initPlayer(episode: VideoEpisode){
         loadVideoInfo = null
         loadVideo = null
         loadDanmaku = null
         exception = null
-
-        if(Thread.currentThread() != context.mainLooper.thread){
-            context.runOnUiThread { initPlayer(episode) }
-            return
+        context.runOnUiThread {
+            context.error_frame.visibility = View.INVISIBLE
+            context.toolbar_layout.isTitleEnabled = false
+            context.video_surface_container.visibility = View.VISIBLE
+            context.video_surface.visibility = View.VISIBLE
+            context.controller_frame.visibility = View.VISIBLE
+            context.item_logcat.visibility = View.VISIBLE
+            context.toolbar.subtitle = episode.parseSort() + " - " + episode.name
         }
-        context.toolbar_layout.isTitleEnabled = false
-        context.video_surface_container.visibility = View.VISIBLE
-        context.video_surface.visibility = View.VISIBLE
-        context.controller_frame.visibility = View.VISIBLE
-        context.item_logcat.visibility = View.VISIBLE
-        context.toolbar.subtitle = episode.parseSort() + " - " + episode.name
-
     }
 
     fun showDanmakuSetting(show: Boolean){

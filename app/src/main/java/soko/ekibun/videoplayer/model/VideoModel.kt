@@ -2,31 +2,27 @@ package soko.ekibun.videoplayer.model
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import android.view.SurfaceView
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.offline.DownloadHelper
-import com.google.android.exoplayer2.offline.FilteringManifestParser
 import com.google.android.exoplayer2.offline.StreamKey
 import com.google.android.exoplayer2.source.*
 import com.google.android.exoplayer2.source.dash.DashMediaSource
-import com.google.android.exoplayer2.source.dash.manifest.DashManifestParser
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import com.google.android.exoplayer2.upstream.*
-import com.google.android.exoplayer2.upstream.cache.CacheDataSink
-import com.google.android.exoplayer2.upstream.cache.CacheDataSinkFactory
 import com.google.android.exoplayer2.upstream.cache.CacheDataSourceFactory
-import com.google.android.exoplayer2.upstream.cache.CacheKeyFactory
 import com.google.android.exoplayer2.util.Util
+import soko.ekibun.util.NetworkUtil
 import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.JsEngine
 import soko.ekibun.videoplayer.bean.VideoEpisode
 import soko.ekibun.videoplayer.bean.VideoSubject
+import soko.ekibun.videoplayer.ui.video.VideoActivity
 import java.text.DecimalFormat
 
-class VideoModel(private val context: Context, private val onAction: Listener) {
+class VideoModel(private val context: VideoActivity, private val onAction: Listener) {
 
     interface Listener{
         fun onReady(playWhenReady: Boolean)
@@ -68,7 +64,10 @@ class VideoModel(private val context: Context, private val onAction: Listener) {
     private var videoInfoCall: HashMap<String, JsEngine.ScriptTask<VideoProvider.VideoInfo>> = HashMap()
     private var videoCall: HashMap<String,  JsEngine.ScriptTask<VideoProvider.VideoRequest>> = HashMap()
     //private val videoCacheModel by lazy{ App.getVideoCacheModel(content)}
-    fun getVideo(key: String, episode: VideoEpisode, subject: VideoSubject, info: VideoProvider.LineInfo?, onGetVideoInfo: (VideoProvider.VideoInfo?, error: Exception?)->Unit, onGetVideo: (VideoProvider.VideoRequest?, List<StreamKey>?, error: Exception?)->Unit) {
+    fun getVideo(key: String, episode: VideoEpisode, subject: VideoSubject, info: VideoProvider.LineInfo?,
+                 onGetVideoInfo: (VideoProvider.VideoInfo?, error: Exception?)->Unit,
+                 onGetVideo: (VideoProvider.VideoRequest?, List<StreamKey>?, error: Exception?)->Unit,
+                 onCheckNetwork: (()->Unit)->Unit) {
         //val videoCache = videoCacheModel.getCache(episode, subject)
         val videoCache = App.from(context).videoCacheModel.getVideoCache(episode, subject)
         if (videoCache != null) {
@@ -86,22 +85,25 @@ class VideoModel(private val context: Context, private val onAction: Listener) {
                 }else onGetVideoInfo(null, null)
                 return
             }
-            val jsEngine = App.from(context).jsEngine
-            videoInfoCall[key]?.cancel(true)
-            videoCall[key]?.cancel(true)
-            videoInfoCall[key] = provider.getVideoInfo(key, jsEngine, info, episode)
-            videoInfoCall[key]?.enqueue({ video ->
-                onGetVideoInfo(video, null)
-                if(video.site == ""){
-                    onGetVideo(VideoProvider.VideoRequest(video.url), null, null)
-                    return@enqueue
-                }
-                val videoProvider = App.from(context).videoProvider.getProvider(video.site)!!
-                videoCall[key] = videoProvider.getVideo(key, jsEngine, video)
-                videoCall[key]?.enqueue({
-                    onGetVideo(it, null, null)
-                }, { onGetVideo(null, null, it) })
-            }, { onGetVideoInfo(null, it) })
+            val loadFromNetwork:()->Unit = {
+                val jsEngine = App.from(context).jsEngine
+                videoInfoCall[key]?.cancel(true)
+                videoCall[key]?.cancel(true)
+                videoInfoCall[key] = provider.getVideoInfo(key, jsEngine, info, episode)
+                videoInfoCall[key]?.enqueue({ video ->
+                    onGetVideoInfo(video, null)
+                    if(video.site == ""){
+                        onGetVideo(VideoProvider.VideoRequest(video.url), null, null)
+                        return@enqueue
+                    }
+                    val videoProvider = App.from(context).videoProvider.getProvider(video.site)!!
+                    videoCall[key] = videoProvider.getVideo(key, jsEngine, video)
+                    videoCall[key]?.enqueue({
+                        onGetVideo(it, null, null)
+                    }, { onGetVideo(null, null, it) })
+                }, { onGetVideoInfo(null, it) })
+            }
+            if(!NetworkUtil.isWifiConnected(context)) onCheckNetwork(loadFromNetwork) else loadFromNetwork()
         }
     }
 
@@ -130,10 +132,14 @@ class VideoModel(private val context: Context, private val onAction: Listener) {
         helper.prepare(callback)
     }
 
+    var reload = {}
     fun play(request: VideoProvider.VideoRequest, surface: SurfaceView, streamKeys: List<StreamKey>? = null){
-        player.setVideoSurfaceView(surface)
-        player.prepare(createMediaSource(request, streamKeys))
-        player.playWhenReady = true
+        reload = {
+            player.setVideoSurfaceView(surface)
+            player.prepare(createMediaSource(request, streamKeys))
+            player.playWhenReady = true
+        }
+        reload()
     }
 
     companion object {

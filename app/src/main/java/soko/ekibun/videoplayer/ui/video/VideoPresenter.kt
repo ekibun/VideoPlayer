@@ -2,18 +2,16 @@ package soko.ekibun.videoplayer.ui.video
 
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.graphics.Color
 import android.net.Uri
 import android.preference.PreferenceManager
 import android.view.View
-import android.view.WindowManager
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.Player
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.android.synthetic.main.danmaku_setting.*
 import kotlinx.android.synthetic.main.video_player.*
+import soko.ekibun.util.NetworkUtil
 import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.bean.VideoEpisode
 import soko.ekibun.videoplayer.bean.VideoSubject
@@ -161,8 +159,10 @@ class VideoPresenter(val context: VideoActivity) {
             }
 
             override fun onError(error: ExoPlaybackException) {
-                videoView.exception = error.sourceException
-                Snackbar.make(context.root_layout, videoView.exception.toString(), Snackbar.LENGTH_SHORT).show()
+                videoView.showVideoError("视频加载错误\n${error.sourceException?.localizedMessage}", "重新加载"){
+                    startAt = videoModel.player.currentPosition
+                    videoModel.reload()
+                }
             }
         })
     }
@@ -196,7 +196,10 @@ class VideoPresenter(val context: VideoActivity) {
     var prevEpisode: ()->VideoEpisode? = { null }
     var updatePlayProgress: (Int)->Unit = {}
     var startAt: Long? = null
+    var ignoreNetwork = false
     private fun play(episode: VideoEpisode, subject: VideoSubject, info: VideoProvider.LineInfo, infos: List<VideoProvider.LineInfo>){
+        ignoreNetwork = false
+
         updatePlayProgress = {
             progressModel.saveProgress(subject, ProgressModel.Info(episode, it))
         }
@@ -224,7 +227,19 @@ class VideoPresenter(val context: VideoActivity) {
             videoView.exception = error?:videoView.exception
             if(context.isDestroyed) return@getVideo
             videoView.loadVideo = request != null
+            ignoreNetwork = streamKeys != null
             if(request != null) videoModel.play(request, context.video_surface, streamKeys)
+        }, {
+            controller.updateLoading(false)
+            context.item_logcat.visibility = View.INVISIBLE
+            controller.doShowHide(false)
+            videoView.showVideoError("正在使用非wifi网络", "继续加载"){
+                ignoreNetwork = true
+                controller.updateLoading(true)
+                controller.doShowHide(true)
+                context.item_logcat.visibility = View.VISIBLE
+                it()
+            }
         })
     }
 
@@ -233,7 +248,8 @@ class VideoPresenter(val context: VideoActivity) {
         videoModel.player.playWhenReady = play
         updatePauseResume()
         playLoopTask?.cancel()
-        if(play){
+
+        val doPlay = {
             playLoopTask = object: TimerTask(){ override fun run() {
                 context.runOnUiThread {
                     updateProgress()
@@ -248,6 +264,14 @@ class VideoPresenter(val context: VideoActivity) {
             context.video_surface.keepScreenOn = true
             if(videoModel.player.playbackState == Player.STATE_READY)
                 danmakuPresenter.view.resume()
+        }
+        if(play){
+            if(NetworkUtil.isWifiConnected(context) || ignoreNetwork) doPlay() else videoView.showVideoError("正在使用非wifi网络", "继续播放"){
+                videoModel.player.playWhenReady = true
+                updatePauseResume()
+                ignoreNetwork = true
+                doPlay()
+            }
         }else{
             context.video_surface.keepScreenOn = false
             danmakuPresenter.view.pause()
