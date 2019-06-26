@@ -77,13 +77,12 @@ class VideoActivity : SwipeBackActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        onMultiWindowModeChanged((Build.VERSION.SDK_INT >=24 && isInMultiWindowMode), newConfig)
+        systemUIPresenter.onWindowModeChanged(newConfig)
     }
 
     override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: Configuration?) {
         super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
-        systemUIPresenter.onWindowModeChanged(isInMultiWindowMode, (Build.VERSION.SDK_INT >=24 && isInPictureInPictureMode), newConfig)
-        if(video_surface_container.visibility == View.VISIBLE) videoPresenter.controller.doShowHide(false)
+        systemUIPresenter.onWindowModeChanged(newConfig)
     }
 
     private val downloadReceiver = object: BroadcastReceiver(){

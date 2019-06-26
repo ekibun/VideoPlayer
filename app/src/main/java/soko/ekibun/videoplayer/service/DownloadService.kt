@@ -77,7 +77,7 @@ class DownloadService : Service() {
                     }else{
                         val videoCache = JsonUtil.toEntity(intent.getStringExtra(EXTRA_VIDEO_CACHE)?:"", VideoCache::class.java)?:return@let
                         App.from(this@DownloadService).videoCacheModel.addVideoCache(subject, videoCache)
-                        val newTask = DownloadTask(createDownloader(videoCache, taskKey)) {mTask ->
+                        val newTask = DownloadTask(createDownloader(videoCache)) {mTask ->
                             val status = taskCollection.filter { !VideoCacheModel.isFinished(it.value.percentDownloaded) }.size
 
                             val isFinished = VideoCacheModel.isFinished(mTask.percentDownloaded)
@@ -117,7 +117,7 @@ class DownloadService : Service() {
                         manager.cancel(0)
 
                     val videoCache = videoCacheModel.getVideoCache(episode, subject)?:return@let
-                    createDownloader(videoCache, taskKey).remove()
+                    createDownloader(videoCache).remove()
                     videoCacheModel.removeVideoCache(episode, subject)
 
                     sendBroadcast(episode, subject, Float.NaN, 0, false)
@@ -127,7 +127,7 @@ class DownloadService : Service() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun createDownloader(videoCache: VideoCache, key: String): Downloader{
+    private fun createDownloader(videoCache: VideoCache): Downloader{
         val dataSourceFactory =VideoModel.createDataSourceFactory(this, videoCache.video, true)
         val downloaderFactory = DefaultDownloaderFactory(DownloaderConstructorHelper(App.from(this).downloadCache, dataSourceFactory))
         return downloaderFactory.createDownloader(DownloadRequest(videoCache.video.url, videoCache.type, Uri.parse(videoCache.video.url), videoCache.streamKeys, null, null))

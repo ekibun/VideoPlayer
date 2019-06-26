@@ -10,12 +10,14 @@ import soko.ekibun.videoplayer.IVideoSubjectProvider
 import soko.ekibun.videoplayer.bean.VideoEpisode
 import soko.ekibun.videoplayer.bean.VideoSubject
 import soko.ekibun.videoplayer.callback.IListEpisodeCallback
+import soko.ekibun.videoplayer.callback.IListSubjectCallback
 import soko.ekibun.videoplayer.callback.ISubjectCallback
 
 class SubjectProvider(val context: AppCompatActivity, val listener: OnChangeListener): ServiceConnection {
     interface OnChangeListener{
         fun onSubjectChange(subject: VideoSubject)
         fun onEpisodeListChange(eps: List<VideoEpisode>, merge: Boolean)
+        fun onSubjectSeasonChange(seasons: List<VideoSubject>)
     }
 
     var subject = context.intent.getParcelableExtra<VideoSubject>(EXTRA_SUBJECT)!!
@@ -42,6 +44,15 @@ class SubjectProvider(val context: AppCompatActivity, val listener: OnChangeList
         }
     }
 
+    private fun getSubjectSeason() {
+        aidl?.getSubjectSeason(subject, object: IListSubjectCallback.Stub() {
+            override fun onFinish(result: List<VideoSubject>) {
+                listener.onSubjectSeasonChange(result)
+            }
+            override fun onReject(reason: String) {}
+        })
+    }
+
     fun refreshSubject() {
         aidl?.refreshSubject(subject, object: ISubjectCallback.Stub() {
             override fun onFinish(result: VideoSubject) {
@@ -50,6 +61,7 @@ class SubjectProvider(val context: AppCompatActivity, val listener: OnChangeList
             }
             override fun onReject(reason: String) {}
         })
+        getSubjectSeason()
     }
 
     fun refreshEpisode() {

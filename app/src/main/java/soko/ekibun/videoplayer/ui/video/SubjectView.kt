@@ -25,6 +25,8 @@ class SubjectView(val context: VideoActivity) {
     val episodeAdapter = SmallEpisodeAdapter(context)
     val episodeDetailAdapter = EpisodeAdapter(context)
     val lineAdapter = LineAdapter()
+    val seasonAdapter = SeasonAdapter()
+    val seasonLayoutManager = LinearLayoutManager(context)
 
     init {
         context.episode_list.adapter = episodeAdapter
@@ -40,6 +42,11 @@ class SubjectView(val context: VideoActivity) {
         context.line_list.adapter = lineAdapter
         context.line_list.layoutManager = LinearLayoutManager(context)
 
+        context.season_list.adapter = seasonAdapter
+        seasonLayoutManager.orientation = RecyclerView.HORIZONTAL
+        context.season_list.layoutManager = seasonLayoutManager
+        context.season_list.isNestedScrollingEnabled = false
+
         context.item_close.setOnClickListener {
             showEpisodeDetail(false)
         }
@@ -54,6 +61,7 @@ class SubjectView(val context: VideoActivity) {
         }
         context.episode_list.setOnTouchListener(swipeTouchListener)
         context.season_list.setOnTouchListener(swipeTouchListener)
+        context.season_list.setOnTouchListener(swipeTouchListener)
 
     }
 
@@ -61,48 +69,45 @@ class SubjectView(val context: VideoActivity) {
     @SuppressLint("SetTextI18n")
     fun updateSubject(subject: VideoSubject){
         if(context.isDestroyed) return
-        if(Thread.currentThread() != context.mainLooper.thread){
-            context.runOnUiThread { updateSubject(subject) }
-            return
-        }
-
-        context.item_detail.setOnClickListener {
-            try{
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("ekibun://playersubject/${subject.site}/${subject.id}"))
-                intent.putExtra(EXTRA_SUBJECT, subject)
-                context.startActivity(intent)
-            }catch (e: Exception){ e.printStackTrace() }
-        }
-
-        context.title = subject.name
-        //subject detail
-        context.item_info.text = subject.type
-        context.item_subject_title.text = subject.name
-        context.item_air_time.text = "开播时间：${subject.air_date}"
-        context.item_air_week.text = {
-            var ret = "更新时间："
-            subject.air_weekday.toString().forEach {
-                ret += weekList[it.toString().toInt()] + " "
+        context.runOnUiThread {
+            context.item_detail.setOnClickListener {
+                try{
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("ekibun://playersubject/${subject.site}/${subject.id}"))
+                    intent.putExtra(EXTRA_SUBJECT, subject)
+                    context.startActivity(intent)
+                }catch (e: Exception){ e.printStackTrace() }
             }
-            ret
-        }()
-        context.item_score.text = subject.rating.toString()
-        context.item_score_count.text = "${subject.rating_count}人"
-        Glide.with(context.item_cover)
-            .applyDefaultRequestOptions(RequestOptions.placeholderOf(context.item_cover.drawable))
-            .load(subject.image)
-            .apply(RequestOptions.errorOf(R.drawable.ic_404))
-            .into(context.item_cover)
-        Glide.with(context.item_cover_blur)
-            .applyDefaultRequestOptions(RequestOptions.placeholderOf(context.item_cover_blur.drawable))
-            .load(subject.image)
-            .apply(RequestOptions.bitmapTransform(BlurTransformation(25, 8)))
-            .into(context.item_cover_blur)
-        updateEpisode(subject.eps, subject, false)
-        //collection
-        context.item_collect_info.text = if(subject.collect.isNullOrEmpty()) "收藏" else subject.collect
-        context.item_collect_image.setImageDrawable(context.resources.getDrawable(
-            if(subject.collect.isNullOrEmpty()) R.drawable.ic_heart_outline else R.drawable.ic_heart, context.theme))
+
+            context.title = subject.name
+            //subject detail
+            context.item_info.text = subject.type
+            context.item_subject_title.text = subject.name
+            context.item_air_time.text = "开播时间：${subject.air_date}"
+            context.item_air_week.text = {
+                var ret = "更新时间："
+                subject.air_weekday.toString().forEach {
+                    ret += weekList[it.toString().toInt()] + " "
+                }
+                ret
+            }()
+            context.item_score.text = subject.rating.toString()
+            context.item_score_count.text = "${subject.rating_count}人"
+            Glide.with(context.item_cover)
+                .applyDefaultRequestOptions(RequestOptions.placeholderOf(context.item_cover.drawable))
+                .load(subject.image)
+                .apply(RequestOptions.errorOf(R.drawable.ic_404))
+                .into(context.item_cover)
+            Glide.with(context.item_cover_blur)
+                .applyDefaultRequestOptions(RequestOptions.placeholderOf(context.item_cover_blur.drawable))
+                .load(subject.image)
+                .apply(RequestOptions.bitmapTransform(BlurTransformation(25, 8)))
+                .into(context.item_cover_blur)
+            updateEpisode(subject.eps, subject, false)
+            //collection
+            context.item_collect_info.text = if(subject.collect.isNullOrEmpty()) "收藏" else subject.collect
+            context.item_collect_image.setImageDrawable(context.resources.getDrawable(
+                if(subject.collect.isNullOrEmpty()) R.drawable.ic_heart_outline else R.drawable.ic_heart, context.theme))
+        }
     }
 
     var subjectEpisode: List<VideoEpisode> = ArrayList()
@@ -110,45 +115,42 @@ class SubjectView(val context: VideoActivity) {
     @SuppressLint("SetTextI18n")
     fun updateEpisode(episodes: List<VideoEpisode>?, subject: VideoSubject, merge: Boolean){
         if(context.isDestroyed) return
-        if(Thread.currentThread() != context.mainLooper.thread){
-            context.runOnUiThread { updateEpisode(episodes, subject, merge) }
-            return
-        }
-
-        val cacheEpisode = (App.from(context).videoCacheModel.getSubjectCacheList(subject)?.videoList?.map { it.episode }?:ArrayList()).sortedBy { it.sort }.sortedBy { it.cat }
-        val newSubjectEpisode = if(merge) (episodes?:listOf()).plus(subjectEpisode).distinctBy { it.id + it.parseSort() } else episodes?: subjectEpisode
-        if(subjectEpisode.size != newSubjectEpisode.size) scrolled = false
-        subjectEpisode = newSubjectEpisode
-        val eps = subjectEpisode.filter { (it.status?:"") in listOf("Air") }
-        context.episode_detail.text = (if(cacheEpisode.isNotEmpty()) "已缓存 ${cacheEpisode.size} 话" else "") +
-                (if(cacheEpisode.isNotEmpty() && subjectEpisode.isNotEmpty()) " / " else "")+
-                (if(subjectEpisode.isNotEmpty()) (if(eps.size == subjectEpisode.size) "全 ${eps.size} 话" else eps.lastOrNull()?.let{ "更新到${it.parseSort()}" }?:"尚未更新") else "")
-        val maps = LinkedHashMap<String, List<VideoEpisode>>()
-        subjectEpisode.plus(cacheEpisode).distinctBy { it.id }.forEach {
-            val key = it.cat?:""
-            maps[key] = (maps[key]?:ArrayList()).plus(it)
-        }
-        episodeAdapter.setNewData(null)
-        episodeDetailAdapter.setNewData(null)
-        maps.forEach {
-            episodeDetailAdapter.addData(object: SectionEntity<VideoEpisode>(true, it.key){})
-            it.value.forEach {
-                if((it.status?:"") in listOf("Air"))
-                    episodeAdapter.addData(it)
-                episodeDetailAdapter.addData(object: SectionEntity<VideoEpisode>(it){})
+        context.runOnUiThread {
+            val cacheEpisode = (App.from(context).videoCacheModel.getSubjectCacheList(subject)?.videoList?.map { it.episode }?:ArrayList()).sortedBy { it.sort }.sortedBy { it.cat }
+            val newSubjectEpisode = if(merge) (episodes?:listOf()).plus(subjectEpisode).distinctBy { it.id + it.parseSort() } else episodes?: subjectEpisode
+            if(subjectEpisode.size != newSubjectEpisode.size) scrolled = false
+            subjectEpisode = newSubjectEpisode
+            val eps = subjectEpisode.filter { (it.status?:"") in listOf("Air") }
+            context.episode_detail.text = (if(cacheEpisode.isNotEmpty()) "已缓存 ${cacheEpisode.size} 话" else "") +
+                    (if(cacheEpisode.isNotEmpty() && subjectEpisode.isNotEmpty()) " / " else "")+
+                    (if(subjectEpisode.isNotEmpty()) (if(eps.size == subjectEpisode.size) "全 ${eps.size} 话" else eps.lastOrNull()?.let{ "更新到${it.parseSort()}" }?:"尚未更新") else "")
+            val maps = LinkedHashMap<String, List<VideoEpisode>>()
+            subjectEpisode.plus(cacheEpisode).distinctBy { it.id }.forEach {
+                val key = it.cat?:""
+                maps[key] = (maps[key]?:ArrayList()).plus(it)
             }
-        }
-        if(!scrolled && episodeAdapter.data.size>0){
-            scrolled = true
-
-            var lastView = 0
-            episodeAdapter.data.forEachIndexed { index, episode ->
-                if(episode.progress != null)
-                    lastView = index
+            episodeAdapter.setNewData(null)
+            episodeDetailAdapter.setNewData(null)
+            maps.forEach {
+                episodeDetailAdapter.addData(object: SectionEntity<VideoEpisode>(true, it.key){})
+                it.value.forEach {
+                    if((it.status?:"") in listOf("Air"))
+                        episodeAdapter.addData(it)
+                    episodeDetailAdapter.addData(object: SectionEntity<VideoEpisode>(it){})
+                }
             }
-            val layoutManager = (context.episode_list.layoutManager as LinearLayoutManager)
-            layoutManager.scrollToPositionWithOffset(lastView, 0)
-            layoutManager.stackFromEnd = false
+            if(!scrolled){
+                scrolled = true
+
+                var lastView = 0
+                episodeAdapter.data.forEachIndexed { index, episode ->
+                    if(episode.progress != null)
+                        lastView = index
+                }
+                val layoutManager = (context.episode_list.layoutManager as LinearLayoutManager)
+                layoutManager.scrollToPositionWithOffset(lastView, 0)
+                layoutManager.stackFromEnd = false
+            }
         }
     }
 

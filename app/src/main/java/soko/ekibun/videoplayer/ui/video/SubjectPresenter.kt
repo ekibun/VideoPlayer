@@ -3,6 +3,7 @@ package soko.ekibun.videoplayer.ui.video
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
+import android.util.Log
 import com.google.android.exoplayer2.offline.DownloadHelper
 import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.android.synthetic.main.item_episode.view.*
@@ -22,6 +23,14 @@ class SubjectPresenter(val context: VideoActivity) {
     private val lineInfoModel by lazy{ App.from(context).lineInfoModel }
     val subjectView = SubjectView(context)
     private val subjectProvider = SubjectProvider(context, object: SubjectProvider.OnChangeListener {
+        override fun onSubjectSeasonChange(seasons: List<VideoSubject>) {
+            if(seasons.size > 1) context.runOnUiThread {
+                subjectView.seasonAdapter.setNewData(seasons)
+                subjectView.seasonAdapter.currentId = subject.id ?: ""
+                subjectView.seasonLayoutManager.scrollToPositionWithOffset( subjectView.seasonAdapter.data.indexOfFirst { it.id == subject.id }, 0)
+            }
+        }
+
         override fun onSubjectChange(subject: VideoSubject) {
             subjectView.updateSubject(subject)
         }
@@ -43,6 +52,12 @@ class SubjectPresenter(val context: VideoActivity) {
 
         context.item_collect.setOnClickListener {
             subjectProvider.updateCollection()
+        }
+
+        subjectView.seasonAdapter.setOnItemClickListener { _, _, position ->
+            val subject = subjectView.seasonAdapter.data[position]
+            if(subject.id != subjectView.seasonAdapter.currentId)
+                VideoActivity.startActivity(context, subject)
         }
 
         subjectView.episodeAdapter.setOnItemChildClickListener { _, _, position ->
@@ -80,7 +95,8 @@ class SubjectPresenter(val context: VideoActivity) {
                     it.item_download_info.text = "创建视频请求"
                     context.videoPresenter.videoModel.createDownloadRequest(request, object: DownloadHelper.Callback{
                         override fun onPrepared(helper: DownloadHelper) {
-                            val downloadRequest = helper.getDownloadRequest(null)
+                            val downloadRequest = helper.getDownloadRequest(request.url, null)
+                            Log.v("downloadRequest", downloadRequest.streamKeys.toString())
                             DownloadService.download(context, item.t, subject, VideoCache(item.t, downloadRequest.type, downloadRequest.streamKeys, request))
                         }
                         override fun onPrepareError(helper: DownloadHelper, e: IOException) {

@@ -80,10 +80,11 @@ class SystemUIPresenter(private val context: VideoActivity){
         }
     }
 
-    fun onWindowModeChanged(isInMultiWindowMode: Boolean, isInPictureInPictureMode: Boolean, newConfig: Configuration?) {
+    fun onWindowModeChanged(newConfig: Configuration?) {
         orientation = newConfig?.orientation?:orientation
         updateSystemUI()
         updateRatio()
+        if(context.video_surface_container.visibility == View.VISIBLE) context.videoPresenter.controller.doShowHide(false)
         context.videoPresenter.videoView.showDanmakuSetting(false)
     }
 
