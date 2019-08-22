@@ -32,7 +32,8 @@ object SearchDialog {
 
         val popList = ListPopupWindow(context)
         popList.anchorView = view.item_video_api
-        val providers = ArrayList(App.from(context).videoProvider.providerList.values.filter { it.search.isNotEmpty() })
+        val videoProvider = App.from(context).videoProvider
+        val providers = ArrayList(videoProvider.providerList.values.filter { it.search.isNotEmpty() })
         providers.add(0, VideoProvider.ProviderInfo("", 0, "所有接口"))
         popList.setAdapter(ProviderAdapter(context, providers))
         popList.isModal = true

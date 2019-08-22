@@ -160,6 +160,8 @@ public class JsCodeParser implements Runnable {
                 return 0xffa31515;
             case Token.NAME:
                 return 0xff4e1080;
+            case Token.COMMENT:
+                return 0xff008000;
         }
         return 0xff000000;
     }

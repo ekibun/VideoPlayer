@@ -67,6 +67,8 @@ class JsEngine(val context: App) {
         val methods = """
             |var _http = Packages.${HttpUtil.javaClass.name}.INSTANCE;
             |var _json = Packages.${JsonUtil.javaClass.name}.INSTANCE;
+            |var AsyncTask = Packages.${JsAsyncTask::class.java.name};
+            |var _cachedThreadPool = Packages.${App::class.java.name}.Companion.getCachedThreadPool();
             |var Jsoup = Packages.org.jsoup.Jsoup;
             |var http = {
             |   get(url, header) {
@@ -93,6 +95,12 @@ class JsEngine(val context: App) {
             |           if(request.getRequestHeaders().get("Range") != null) return webview.toRequest(request);
             |           else return null;
             |       });
+            |   }
+            |}
+            |function async(fun){
+            |   return (param)=>{
+            |       var task = new AsyncTask(function(params){ try { return fun(params[0]) } catch(e){} })
+            |       return task.executeOnExecutor(_cachedThreadPool, param)
             |   }
             |}
             |function print(obj){
@@ -138,6 +146,12 @@ class JsEngine(val context: App) {
             this.onFinish = onFinish
             this.onReject = onReject
             this.executeOnExecutor(App.cachedThreadPool)
+        }
+    }
+
+    class JsAsyncTask(val js: (Any)-> Any): AsyncTask<Any, Unit, Any>() {
+        override fun doInBackground(vararg params: Any?): Any {
+            return js(params)
         }
     }
 }
