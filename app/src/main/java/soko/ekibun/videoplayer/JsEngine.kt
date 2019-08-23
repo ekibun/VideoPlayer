@@ -3,6 +3,7 @@ package soko.ekibun.videoplayer
 import android.os.AsyncTask
 import android.util.Log
 import android.webkit.WebResourceRequest
+import android.widget.Toast
 import androidx.annotation.Keep
 import org.mozilla.javascript.Context
 import org.mozilla.javascript.ScriptableObject
@@ -61,6 +62,9 @@ class JsEngine(val context: App) {
     @Keep
     fun print(msg: String){
         Log.v("JsEngine", msg)
+        context.handler.post {
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+        }
     }
 
     fun runScript(script: String, key: String): String{
@@ -99,12 +103,17 @@ class JsEngine(val context: App) {
             |}
             |function async(fun){
             |   return (param)=>{
-            |       var task = new AsyncTask(function(params){ try { return fun(params[0]) } catch(e){} })
+            |       var task = new AsyncTask(function(params){ try { return JSON.stringify(fun(params[0])) } catch(e){ return new Error(e) } })
             |       return task.executeOnExecutor(_cachedThreadPool, param)
             |   }
             |}
+            |function await(task){
+            |   var data = task.get()
+            |   if(data instanceof Error) throw data.message
+            |   return JSON.parse(data)
+            |}
             |function print(obj){
-            |   _jsEngine.print("" + obj);
+            |   _jsEngine.print(${ JsonUtil.toJson(key) } + ":\n" + obj);
             |}
         """.trimMargin()
 

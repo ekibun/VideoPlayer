@@ -1,6 +1,7 @@
 package soko.ekibun.videoplayer.ui.video.line
 
 import android.annotation.SuppressLint
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ListPopupWindow
@@ -30,14 +31,6 @@ object SearchDialog {
             it.setBackgroundResource(0)
         }
 
-        val popList = ListPopupWindow(context)
-        popList.anchorView = view.item_video_api
-        val videoProvider = App.from(context).videoProvider
-        val providers = ArrayList(videoProvider.providerList.values.filter { it.search.isNotEmpty() })
-        providers.add(0, VideoProvider.ProviderInfo("", 0, "所有接口"))
-        popList.setAdapter(ProviderAdapter(context, providers))
-        popList.isModal = true
-
         view.item_search_key.setText(subject.name)
         view.list_search.layoutManager = LinearLayoutManager(context)
         val adapter = SearchLineAdapter()
@@ -65,16 +58,10 @@ object SearchDialog {
         view.list_search.adapter = adapter
         val searchCall = ArrayList<Pair<VideoProvider.ProviderInfo, JsEngine.ScriptTask<List<VideoProvider.LineInfo>>>>()
 
-        var pos = 0
-        view.item_video_api.text = providers[pos]?.title?:""
-        view.item_video_api.setOnClickListener {
-            popList.show()
-            popList.listView?.setOnItemClickListener { _, _, position, _ ->
-                popList.dismiss()
-                pos = position
-                view.item_video_api.text = providers[pos]?.title?:""
-            }
-        }
+        view.item_video_api.text = emptyProvider.title
+        view.item_video_api.tag = emptyProvider
+        updateProvider(view)
+
         view.item_search.setOnClickListener {
             adapter.setNewData(null)
             val key = view.item_search_key.text.toString()
@@ -82,11 +69,12 @@ object SearchDialog {
             searchCall.clear()
 
             val jsEngine = App.from(context).jsEngine
-            searchCall.addAll(if(pos == 0){
-                providers.filter { it.search.isNotEmpty() }.map {
+            val provider = view.item_video_api.tag as? VideoProvider.ProviderInfo?:emptyProvider
+            searchCall.addAll(if(provider == emptyProvider){
+                ArrayList(App.from(context).videoProvider.providerList.values.filter { it.search.isNotEmpty() }).filter { it.search.isNotEmpty() }.map {
                     Pair(it, it.search("search_${it.site}", jsEngine, key))
                 }
-            }else listOf(providers[pos].let{ Pair(it, it.search("search_${it.site}", jsEngine, key)) }))
+            }else listOf(provider.let{ Pair(it, it.search("search_${it.site}", jsEngine, key)) }))
 
             searchCall.forEach {
                 it.second.enqueue({lines->
@@ -99,4 +87,43 @@ object SearchDialog {
 
         dialog.show()
     }
+
+    private fun updateProvider(view: View){
+        val popList = ListPopupWindow(view.context)
+        popList.anchorView = view.item_video_api
+        val videoProvider = App.from(view.context).videoProvider
+        val providers = ArrayList(videoProvider.providerList.values.filter { it.search.isNotEmpty() })
+        providers.add(0, emptyProvider)
+        popList.setAdapter(ProviderAdapter(view.context, providers))
+        popList.isModal = true
+
+        view.item_video_api.setOnClickListener {
+            popList.show()
+            popList.listView?.setOnItemClickListener { _, _, position, _ ->
+                popList.dismiss()
+                view.item_video_api.text = providers[position].title
+                view.item_video_api.tag = providers[position]
+            }
+            popList.listView?.setOnItemLongClickListener { _, _, position, _ ->
+                popList.dismiss()
+                if(position == 0) return@setOnItemLongClickListener false
+                //edit
+                val info = providers[position]
+                (view.context as VideoActivity).loadProvider(providers[position]) {
+                    videoProvider.removeProvider(info.site)
+                    if (it != null) videoProvider.addProvider(it)
+                    updateProvider(view)
+                }
+                true
+            }
+        }
+        (view.item_video_api?.tag as? VideoProvider.LineInfo)?.let{ updateInfo(view, it) }
+    }
+    private fun updateInfo(view: View, info: VideoProvider.LineInfo){
+        val provider = App.from(view.context).videoProvider.getProvider(info.site)?:emptyProvider
+        view.item_video_api.text = provider.title
+        view.item_video_api.tag = provider
+    }
+
+    private val emptyProvider = VideoProvider.ProviderInfo("", 0, "所有接口")
 }
