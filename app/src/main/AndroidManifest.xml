@@ -17,6 +17,20 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:targetApi="n">
+        <activity android:name=".ui.manga.MangaActivity"
+                  android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data
+                        android:host="player"
+                        android:pathPrefix="/book"
+                        android:scheme="ekibun"/>
+            </intent-filter>
+        </activity>
         <activity android:name=".ui.splash.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -61,6 +75,7 @@
 
                 <data
                         android:host="player"
+                        android:pathPrefix="/bangumi"
                         android:scheme="ekibun"/>
             </intent-filter>
         </activity>
