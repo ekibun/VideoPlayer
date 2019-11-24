@@ -121,7 +121,7 @@ class ProviderActivity : AppCompatActivity(), ColorPickerDialogListener {
                 }()
             }
             R.id.action_export -> {
-                clipboardManager.primaryClip = ClipData.newPlainText("videoplayer.providerInfo", JsonUtil.toJson(getProvider()))
+                clipboardManager.setPrimaryClip(ClipData.newPlainText("videoplayer.providerInfo", JsonUtil.toJson(getProvider())))
                 Snackbar.make(root_layout, "数据已导出至剪贴板", Snackbar.LENGTH_LONG).show()
             }
         }

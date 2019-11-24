@@ -47,6 +47,14 @@ class VideoActivity : SwipeBackActivity() {
         systemUIPresenter.init()
         videoPresenter.init()
 
+        val episodePaddingBottom = episode_detail_list.paddingBottom
+        val listPaddingBottom = subject_detail.paddingBottom
+        root_layout.setOnApplyWindowInsetsListener { _, insets ->
+            episode_detail_list.setPadding(episode_detail_list.paddingLeft, episode_detail_list.paddingTop, episode_detail_list.paddingRight, episodePaddingBottom + insets.systemWindowInsetBottom)
+            subject_detail.setPadding(subject_detail.paddingLeft, subject_detail.paddingTop, subject_detail.paddingRight, listPaddingBottom + insets.systemWindowInsetBottom)
+            insets
+        }
+
         registerReceiver(receiver, IntentFilter(ACTION_MEDIA_CONTROL + subjectPresenter.subject.id))
         registerReceiver(downloadReceiver, IntentFilter(DownloadService.getBroadcastAction(subjectPresenter.subject)))
         registerReceiver(networkReceiver, IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"))

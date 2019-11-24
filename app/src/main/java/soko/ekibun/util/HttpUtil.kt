@@ -4,6 +4,9 @@ import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import androidx.annotation.Keep
 import okhttp3.*
+import okhttp3.Headers.Companion.toHeaders
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import soko.ekibun.videoplayer.model.VideoProvider
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -14,7 +17,7 @@ object HttpUtil {
     @Keep
     fun makeRequest(request: WebResourceRequest): VideoProvider.VideoRequest{
         val headers = HashMap(request.requestHeaders)
-        headers["cookie"] = CookieManager.getInstance().getCookie(request.url.host?.toString())?:""
+        headers["cookie"] = CookieManager.getInstance().getCookie(request.url.host)?:""
         return VideoProvider.VideoRequest(request.url.toString(), headers)
     }
 
@@ -26,13 +29,13 @@ object HttpUtil {
     }
     @Keep
     fun createBody(mediaType: String, data: String): RequestBody{
-        return RequestBody.create(MediaType.parse(mediaType), data)
+        return data.toRequestBody(mediaType.toMediaTypeOrNull())
     }
     @Keep
     fun getCall(url: String, header: Map<String, String> = HashMap(), body: RequestBody? = null): Call {
         val request = Request.Builder()
                 .url(url)
-                .headers(Headers.of(header))
+                .headers(header.toHeaders())
         if (body != null)
             request.post(body)
         return OkHttpClient.Builder().cookieJar(WebViewCookieHandler()).build().newCall(request.build())

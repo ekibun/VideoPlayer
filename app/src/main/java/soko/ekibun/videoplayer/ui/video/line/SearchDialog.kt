@@ -1,12 +1,12 @@
 package soko.ekibun.videoplayer.ui.video.line
 
 import android.annotation.SuppressLint
+import android.app.Dialog
+import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
+import android.view.WindowManager
 import android.widget.ListPopupWindow
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.dialog_search_line.view.*
 import soko.ekibun.videoplayer.App
@@ -16,19 +16,30 @@ import soko.ekibun.videoplayer.bean.VideoSubject
 import soko.ekibun.videoplayer.model.VideoProvider
 import soko.ekibun.videoplayer.ui.video.VideoActivity
 
-object SearchDialog {
+class SearchDialog(val context: VideoActivity) : Dialog(context, R.style.AppTheme_Dialog) {
+
+    companion object {
+        fun showDialog(context: VideoActivity, subject: VideoSubject, callback:()->Unit){
+            val dialog = SearchDialog(context)
+            dialog.subject = subject
+            dialog.callback = callback
+            dialog.show()
+        }
+    }
+
+    lateinit var subject: VideoSubject
+    lateinit var callback: () -> Unit
+
     @SuppressLint("InflateParams")
-    fun showDialog(context: VideoActivity, subject: VideoSubject, callback:()->Unit){
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         val lineInfoModel = App.from(context).lineInfoModel
 
         val view =context.layoutInflater.inflate(R.layout.dialog_search_line, null)
-        val dialog = BottomSheetDialog(context)
-        dialog.setContentView(view)
-        dialog.window?.decorView?.findViewById<FrameLayout>(R.id.design_bottom_sheet)?.let{
-            val layoutParams = it.layoutParams
-            layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-            it.layoutParams = layoutParams
-            it.setBackgroundResource(0)
+        setContentView(view)
+
+        view.item_outside.setOnClickListener {
+            dismiss()
         }
 
         view.item_search_key.setText(subject.name)
@@ -39,7 +50,7 @@ object SearchDialog {
             val item = adapter.data[position]
             val exist = adapter.lines?.providers?.firstOrNull { it.site == item.site && it.id == item.id && it.offset == item.offset } != null
             if(exist) {
-                Snackbar.make(dialog.window?.decorView?: view, "线路已存在，长按编辑此线路", Snackbar.LENGTH_LONG).show()
+                showSnackbar(view.list_search, "线路已存在，长按编辑此线路")
                 return@setOnItemClickListener
             }
             val lines = (adapter.lines?: VideoProvider.LineInfoList())
@@ -52,7 +63,7 @@ object SearchDialog {
         adapter.setOnItemLongClickListener { _, _, position ->
             val item = adapter.data[position]//?.let { item -> adapter.lines?.providers?.firstOrNull { it.site == item.site && it.id == item.id }?: item }
             LineDialog.showDialog(context, subject, item, callback)
-            dialog.dismiss()
+            dismiss()
             true
         }
         view.list_search.adapter = adapter
@@ -80,12 +91,34 @@ object SearchDialog {
                 it.second.enqueue({lines->
                     adapter.addData(lines)
                 }, {e->
-                    Snackbar.make(dialog.window?.decorView?: view, "${it.first.title}: ${e.message}", Snackbar.LENGTH_LONG).show()
+                    showSnackbar(view.list_search, "${it.first.title}: ${e.message}")
                 })
             }
         }
 
-        dialog.show()
+        val paddingTop = view.bottom_sheet.paddingTop
+        val paddingBottom = view.list_search.paddingBottom
+        view.setOnApplyWindowInsetsListener { _, insets ->
+            view.bottom_sheet.setPadding(view.bottom_sheet.paddingLeft, paddingTop + insets.systemWindowInsetTop, view.bottom_sheet.paddingRight, view.bottom_sheet.paddingBottom)
+            view.list_search.setPadding(view.list_search.paddingLeft, view.list_search.paddingTop, view.list_search.paddingRight, paddingBottom + insets.systemWindowInsetBottom)
+            insets.consumeSystemWindowInsets()
+        }
+
+        window?.attributes?.let{
+            it.dimAmount = 0.6f
+            window?.attributes = it
+        }
+        window?.setWindowAnimations(R.style.AnimDialog)
+        window?.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+    }
+
+    private fun showSnackbar(view: View, message: String, duration: Int = Snackbar.LENGTH_LONG){
+        val snackbar = Snackbar.make(view, message, duration)
+        snackbar.view.let {
+            it.setPadding(it.paddingLeft, it.paddingTop, it.paddingRight, it.paddingBottom + view.paddingBottom)
+        }
+        snackbar.show()
     }
 
     private fun updateProvider(view: View){
