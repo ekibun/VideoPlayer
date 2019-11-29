@@ -75,7 +75,7 @@ class DownloadService : Service() {
                             .setContentText(parseDownloadInfo(this@DownloadService, task.percentDownloaded, task.bytesDownloaded))
                             .setContentIntent(pIntent).build())
                     }else{
-                        val videoCache = JsonUtil.toEntity(intent.getStringExtra(EXTRA_VIDEO_CACHE)?:"", VideoCache::class.java)?:return@let
+                        val videoCache = JsonUtil.toEntity<VideoCache>(intent.getStringExtra(EXTRA_VIDEO_CACHE)?:"")?:return@let
                         App.from(this@DownloadService).videoCacheModel.addVideoCache(subject, videoCache)
                         val newTask = DownloadTask(createDownloader(videoCache)) {mTask ->
                             val status = taskCollection.filter { !VideoCacheModel.isFinished(it.value.percentDownloaded) }.size

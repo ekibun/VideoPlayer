@@ -7,14 +7,14 @@ import kotlinx.android.synthetic.main.item_provider.view.*
 import soko.ekibun.util.ResourceUtil
 import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.R
-import soko.ekibun.videoplayer.model.VideoProvider
+import soko.ekibun.videoplayer.model.LineInfoModel
 
-class LineAdapter(data: MutableList<VideoProvider.LineInfo>? = null) :
-        BaseQuickAdapter<VideoProvider.LineInfo, BaseViewHolder>(R.layout.item_provider, data) {
+class LineAdapter(data: MutableList<LineInfoModel.LineInfo>? = null) :
+        BaseQuickAdapter<LineInfoModel.LineInfo, BaseViewHolder>(R.layout.item_provider, data) {
     var selectIndex = 0
     var onSwitchChange =  {_: Int, _: Boolean->}
 
-    override fun convert(helper: BaseViewHolder, item: VideoProvider.LineInfo) {
+    override fun convert(helper: BaseViewHolder, item: LineInfoModel.LineInfo) {
         val index = data.indexOfFirst{ it === item }
         val color = ResourceUtil.resolveColorAttr(helper.itemView.context,
                 if (index == selectIndex) R.attr.colorPrimary else android.R.attr.textColorSecondary)

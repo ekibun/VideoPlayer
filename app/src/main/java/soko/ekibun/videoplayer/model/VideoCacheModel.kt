@@ -1,8 +1,7 @@
 package soko.ekibun.videoplayer.model
 
 import android.content.Context
-import android.preference.PreferenceManager
-import com.google.gson.reflect.TypeToken
+import androidx.preference.PreferenceManager
 import soko.ekibun.util.JsonUtil
 import soko.ekibun.videoplayer.bean.SubjectCache
 import soko.ekibun.videoplayer.bean.VideoCache
@@ -12,8 +11,7 @@ import kotlin.collections.HashMap
 
 class VideoCacheModel(context: Context){
     private val sp by lazy{ PreferenceManager.getDefaultSharedPreferences(context)!! }
-    private val cacheList by lazy { JsonUtil.toEntity<HashMap<String, SubjectCache>>(sp.getString(PREF_VIDEO_CACHE, JsonUtil.toJson(HashMap<String, SubjectCache>()))!!,
-        object : TypeToken<HashMap<String, SubjectCache>>() {}.type)?: HashMap() }
+    private val cacheList by lazy { JsonUtil.toEntity<HashMap<String, SubjectCache>>(sp.getString(PREF_VIDEO_CACHE, JsonUtil.toJson(HashMap<String, SubjectCache>()))!!)?: HashMap() }
 
     fun getCacheList(site: String): List<SubjectCache>{
         return cacheList.filter { it.key.startsWith(site) }.values.toList()

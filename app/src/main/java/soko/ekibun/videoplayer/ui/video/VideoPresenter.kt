@@ -3,8 +3,8 @@ package soko.ekibun.videoplayer.ui.video
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.Uri
-import android.preference.PreferenceManager
 import android.view.View
+import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.material.snackbar.Snackbar
@@ -15,9 +15,9 @@ import soko.ekibun.util.NetworkUtil
 import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.bean.VideoEpisode
 import soko.ekibun.videoplayer.bean.VideoSubject
+import soko.ekibun.videoplayer.model.LineInfoModel
 import soko.ekibun.videoplayer.model.ProgressModel
 import soko.ekibun.videoplayer.model.VideoModel
-import soko.ekibun.videoplayer.model.VideoProvider
 import soko.ekibun.videoplayer.ui.view.VideoController
 import java.util.*
 
@@ -197,7 +197,7 @@ class VideoPresenter(val context: VideoActivity) {
     var updatePlayProgress: (Int)->Unit = {}
     var startAt: Long? = null
     var ignoreNetwork = false
-    private fun play(episode: VideoEpisode, subject: VideoSubject, info: VideoProvider.LineInfo, infos: List<VideoProvider.LineInfo>){
+    private fun play(episode: VideoEpisode, subject: VideoSubject, info: LineInfoModel.LineInfo, infos: List<LineInfoModel.LineInfo>){
         ignoreNetwork = false
 
         updatePlayProgress = {

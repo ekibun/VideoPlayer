@@ -1,6 +1,5 @@
 package soko.ekibun.videoplayer.ui.video
 
-import android.Manifest
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
@@ -9,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ActivityInfo
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
 import android.os.Build
@@ -19,19 +17,27 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.android.synthetic.main.subject_episode.*
-import soko.ekibun.util.*
+import soko.ekibun.util.AppUtil
+import soko.ekibun.util.NetworkUtil
+import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.bean.VideoEpisode
 import soko.ekibun.videoplayer.bean.VideoSubject
 import soko.ekibun.videoplayer.model.SubjectProvider
 import soko.ekibun.videoplayer.model.VideoProvider
 import soko.ekibun.videoplayer.service.DownloadService
-import soko.ekibun.videoplayer.ui.provider.ProviderActivity
+import soko.ekibun.videoplayer.ui.dialog.ProviderAdapter
 import soko.ekibun.videoplayer.ui.setting.SettingsActivity
+import java.lang.reflect.Type
 
-class VideoActivity : SwipeBackActivity() {
+class VideoActivity : ProviderAdapter.LineProviderActivity<VideoProvider.ProviderInfo>() {
+    override val typeT: Type = object: TypeToken<VideoProvider.ProviderInfo>(){}.type
+    override val fileType: String = "video/*"
+    override val lineProvider by lazy { App.from(this).videoProvider }
+
     val subjectPresenter by lazy { SubjectPresenter(this) }
     val systemUIPresenter by lazy { SystemUIPresenter(this) }
     val videoPresenter by lazy { VideoPresenter(this) }
@@ -211,57 +217,9 @@ class VideoActivity : SwipeBackActivity() {
         return true
     }
 
-    private fun checkStorage(): Boolean{
-        if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_STORAGE_CODE)
-            return false
-        }
-        return true
-    }
-
-    private var loadFileCallback:((String?)-> Unit)? = null
-    fun loadFile(callback:(String?)-> Unit){
-        loadFileCallback = callback
-        if (!checkStorage()) return
-        val intent = Intent()
-        intent.type = "video/*"
-        intent.action = Intent.ACTION_GET_CONTENT
-        startActivityForResult(intent, REQUEST_FILE_CODE)
-    }
-
-    private var loadProviderCallback:((VideoProvider.ProviderInfo?)-> Unit)? = null
-    fun loadProvider(info: VideoProvider.ProviderInfo?, callback:(VideoProvider.ProviderInfo?)-> Unit){
-        loadProviderCallback = callback
-        val intent = Intent(this, ProviderActivity::class.java)
-        info?.let { intent.putExtra(ProviderActivity.EXTRA_PROVIDER_INFO, JsonUtil.toJson(it)) }
-        startActivityForResult(intent, REQUEST_PROVIDER)
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_STORAGE_CODE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED && loadFileCallback != null) {
-                loadFile(loadFileCallback!!)
-            } else {
-                loadFileCallback?.invoke(null)
-                loadFileCallback = null
-            }
-        }
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         subjectPresenter.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == REQUEST_FILE_CODE && resultCode == RESULT_OK) {//文件
-            val uri = data?.data?: return
-            val path = StorageUtil.getRealPathFromUri(this, uri)
-            loadFileCallback?.invoke(path)
-        }
-
-        if (requestCode == REQUEST_PROVIDER && resultCode == RESULT_OK) {//Provider
-            loadProviderCallback?.invoke(JsonUtil.toEntity(data?.getStringExtra(ProviderActivity.EXTRA_PROVIDER_INFO)?:"", VideoProvider.ProviderInfo::class.java))
-        }
         subjectPresenter.refreshSubject()
     }
 
@@ -272,10 +230,6 @@ class VideoActivity : SwipeBackActivity() {
         const val CONTROL_TYPE_PLAY = 2
         const val CONTROL_TYPE_NEXT = 3
         const val CONTROL_TYPE_PREV = 4
-
-        private const val REQUEST_STORAGE_CODE = 1
-        private const val REQUEST_FILE_CODE = 2
-        private const val REQUEST_PROVIDER = 3
 
         fun startActivity(context: Context, subject: VideoSubject, newTask:Boolean = false) {
             context.startActivity(parseIntent(context, subject, newTask))

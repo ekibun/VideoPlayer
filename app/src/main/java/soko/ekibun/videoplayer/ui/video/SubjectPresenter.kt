@@ -13,9 +13,11 @@ import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.bean.VideoCache
 import soko.ekibun.videoplayer.bean.VideoEpisode
 import soko.ekibun.videoplayer.bean.VideoSubject
+import soko.ekibun.videoplayer.model.LineInfoModel
 import soko.ekibun.videoplayer.model.SubjectProvider
+import soko.ekibun.videoplayer.model.VideoProvider
 import soko.ekibun.videoplayer.service.DownloadService
-import soko.ekibun.videoplayer.ui.video.line.LineDialog
+import soko.ekibun.videoplayer.ui.dialog.LineDialog
 import java.io.IOException
 
 class SubjectPresenter(val context: VideoActivity) {
@@ -122,6 +124,9 @@ class SubjectPresenter(val context: VideoActivity) {
 
     private fun refreshLines(){
         val infos = lineInfoModel.getInfos(subject)
+        val editLines = { info: LineInfoModel.LineInfo? ->
+            LineDialog.showDialog<VideoProvider.ProviderInfo>(context, subject, info){ refreshLines() }
+        }
         context.runOnUiThread { subjectView.lineAdapter.setNewData(infos?.providers) }
         infos?.let{
             //subjectView.lineAdapter.setNewData(it.providers)
@@ -138,13 +143,13 @@ class SubjectPresenter(val context: VideoActivity) {
                 refreshLines()
             }
             subjectView.lineAdapter.setOnItemLongClickListener { _, _, position ->
-                LineDialog.showDialog(context, subject, it.providers[position]){ refreshLines() }
+                editLines(it.providers[position])
                 true
             }
         }
 
         context.item_lines.setOnClickListener{
-            LineDialog.showDialog(context, subject){ refreshLines() }
+            editLines(null)
         }
     }
 

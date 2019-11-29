@@ -1,4 +1,4 @@
-package soko.ekibun.videoplayer.ui.video.line
+package soko.ekibun.videoplayer.ui.dialog
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -8,6 +8,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
@@ -19,36 +20,51 @@ import soko.ekibun.util.JsonUtil
 import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.bean.VideoSubject
+import soko.ekibun.videoplayer.model.LineInfoModel
 import soko.ekibun.videoplayer.model.VideoProvider
 import soko.ekibun.videoplayer.ui.video.VideoActivity
+import java.lang.reflect.Type
 
-class LineDialog(val context: VideoActivity) : Dialog(context, R.style.AppTheme_Dialog) {
+class LineDialog<T: ProviderAdapter.ProviderInfo>(val context: ProviderAdapter.LineProviderActivity<T>) : Dialog(context, R.style.AppTheme_Dialog) {
     companion object {
-        fun showDialog(
-            context: VideoActivity,
+        inline fun <reified T: ProviderAdapter.ProviderInfo> showDialog(
+            context: ProviderAdapter.LineProviderActivity<*>,
             subject: VideoSubject,
-            info: VideoProvider.LineInfo? = null,
-            callback: () -> Unit
+            info: LineInfoModel.LineInfo? = null,
+            noinline callback: () -> Unit
+        ) {
+            Log.v("type", T::class.java.toString())
+            showDialog(context, subject, info, callback, object : TypeToken<T>() {}.type, object : TypeToken<List<T>>() {}.type)
+        }
+
+        fun showDialog(
+            context: ProviderAdapter.LineProviderActivity<*>,
+            subject: VideoSubject,
+            info: LineInfoModel.LineInfo? = null,
+            callback: () -> Unit,
+            typeT: Type, typeListT: Type
         ) {
             val dialog = LineDialog(context)
             dialog.subject = subject
             dialog.info = info
             dialog.callback = callback
+            dialog.typeT = typeT
+            dialog.typeListT = typeListT
             dialog.show()
         }
     }
 
-    val videoProvider by lazy { App.from(context).videoProvider }
-
+    lateinit var typeT: Type
+    lateinit var typeListT: Type
     lateinit var subject: VideoSubject
-    var info: VideoProvider.LineInfo? = null
+    var info: LineInfoModel.LineInfo? = null
     lateinit var callback: () -> Unit
-    val emptyProvider = VideoProvider.ProviderInfo("", 0, "链接")
+    val emptyProvider = ProviderAdapter.ProviderInfo("", 0, "链接")
     @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
         val lineInfoModel = App.from(context).lineInfoModel
-        val lineInfos = lineInfoModel.getInfos(subject) ?: VideoProvider.LineInfoList()
-        val setProvider = { newInfo: VideoProvider.LineInfo? ->
+        val lineInfos = lineInfoModel.getInfos(subject) ?: LineInfoModel.LineInfoList()
+        val setProvider = { newInfo: LineInfoModel.LineInfo? ->
             val position =
                 lineInfos.providers.indexOfFirst { it.id == info?.id && it.site == info?.site && it.offset == info?.offset }
             when {
@@ -85,21 +101,21 @@ class LineDialog(val context: VideoActivity) : Dialog(context, R.style.AppTheme_
         info?.let { updateInfo(view, it) }
 
         view.item_search.setOnClickListener {
-            SearchDialog.showDialog(context, subject, callback)
+            SearchDialog.showDialog(context, subject, callback, typeT, typeListT)
             dismiss()
         }
 
         view.item_file.setOnClickListener {
-            context.loadFile { file ->
+            if(context is VideoActivity) context.loadFile { file ->
                 if (file == null) return@loadFile
-                updateInfo(view, VideoProvider.LineInfo("", file))
+                updateInfo(view, LineInfoModel.LineInfo("", file))
             }
         }
 
         view.item_ok.setOnClickListener {
-            val provider = view.item_video_api.tag as? VideoProvider.ProviderInfo ?: return@setOnClickListener
+            val provider = view.item_video_api.tag as? ProviderAdapter.ProviderInfo ?: return@setOnClickListener
             setProvider(
-                VideoProvider.LineInfo(
+                LineInfoModel.LineInfo(
                     provider.site,
                     view.item_video_id.text.toString(),
                     view.item_video_offset.text.toString().toFloatOrNull() ?: 0f,
@@ -138,12 +154,12 @@ class LineDialog(val context: VideoActivity) : Dialog(context, R.style.AppTheme_
     private fun updateProvider(view: View) {
         val popList = ListPopupWindow(context)
         popList.anchorView = view.item_video_api
-        val providerList = ArrayList(videoProvider.providerList.values)
+        val providerList: ArrayList<ProviderAdapter.ProviderInfo> = ArrayList(context.lineProvider.providerList.values)
 
         providerList.add(0, emptyProvider)
-        providerList.add(VideoProvider.ProviderInfo("", 0, "添加..."))
-        providerList.add(VideoProvider.ProviderInfo("", 0, "导出..."))
-        providerList.add(VideoProvider.ProviderInfo("", 0, "导入..."))
+        providerList.add(ProviderAdapter.ProviderInfo("", 0, "添加..."))
+        providerList.add(ProviderAdapter.ProviderInfo("", 0, "导出..."))
+        providerList.add(ProviderAdapter.ProviderInfo("", 0, "导入..."))
         popList.setAdapter(ProviderAdapter(context, providerList))
         popList.isModal = true
         view.item_video_api.setOnClickListener {
@@ -155,7 +171,7 @@ class LineDialog(val context: VideoActivity) : Dialog(context, R.style.AppTheme_
                         //doAdd
                         context.loadProvider(null) {
                             if (it == null) return@loadProvider
-                            videoProvider.addProvider(it)
+                            context.lineProvider.addProvider(it)
                             view.item_video_api.text = it.title
                             view.item_video_api.tag = it
                             updateProvider(view)
@@ -166,30 +182,28 @@ class LineDialog(val context: VideoActivity) : Dialog(context, R.style.AppTheme_
                         clipboardManager.setPrimaryClip(
                             ClipData.newPlainText(
                                 "videoplayer.providerInfo",
-                                JsonUtil.toJson(videoProvider.providerList.values)
+                                JsonUtil.toJson(context.lineProvider.providerList.values)
                             )
                         )
                         Snackbar.make(view, "数据已导出至剪贴板", Snackbar.LENGTH_LONG).show()
                     }
                     providerList.size - 1 -> {
-                        val addProvider = { it: VideoProvider.ProviderInfo ->
-                            val oldProvider = videoProvider.getProvider(it.site)
+                        val addProvider = { it: T ->
+                            val oldProvider = context.lineProvider.getProvider(it.site)
                             if (oldProvider != null)
                                 AlertDialog.Builder(context).setMessage("接口 ${it.title}(${it.site}) 与现有接口 ${oldProvider.title}(${oldProvider.site}) 重复")
                                     .setPositiveButton("替换") { _: DialogInterface, _: Int ->
-                                        videoProvider.addProvider(it)
+                                        context.lineProvider.addProvider(it)
                                     }.setNegativeButton("取消") { _: DialogInterface, _: Int -> }.show()
-                            else videoProvider.addProvider(it)
+                            else context.lineProvider.addProvider(it)
                         }
                         //inport
-                        JsonUtil.toEntity<List<VideoProvider.ProviderInfo>>(
-                            clipboardManager.primaryClip?.getItemAt(0)?.text?.toString() ?: "",
-                            object : TypeToken<List<VideoProvider.ProviderInfo>>() {}.type
-                        )?.let {
-                            it.forEach { addProvider(it) }
-                        } ?: JsonUtil.toEntity(
-                            clipboardManager.primaryClip?.getItemAt(0)?.text?.toString() ?: "",
-                            VideoProvider.ProviderInfo::class.java
+                        JsonUtil.toEntity<List<T>>(
+                            clipboardManager.primaryClip?.getItemAt(0)?.text?.toString() ?: "", typeListT
+                        )?.let { list ->
+                            list.forEach { addProvider(it) }
+                        } ?: JsonUtil.toEntity<T>(
+                            clipboardManager.primaryClip?.getItemAt(0)?.text?.toString() ?: "", typeT
                         )?.let {
                             addProvider(it)
                         } ?: {
@@ -207,26 +221,27 @@ class LineDialog(val context: VideoActivity) : Dialog(context, R.style.AppTheme_
                 popList.dismiss()
                 if (providerList.size - position < 4 || position == 0) return@setOnItemLongClickListener false
                 //edit
-                val info = providerList[position]
-                context.loadProvider(providerList[position]) {
-                    videoProvider.removeProvider(info.site)
-                    if (it != null) videoProvider.addProvider(it)
+                @Suppress("UNCHECKED_CAST") val info = providerList[position] as T
+                context.loadProvider(info) {
+                    context.lineProvider.removeProvider(info.site)
+                    if (it != null) context.lineProvider.addProvider(it)
                     updateProvider(view)
                 }
                 true
             }
         }
-        (view.item_video_api?.tag as? VideoProvider.LineInfo)?.let { updateInfo(view, it) }
+        (view.item_video_api?.tag as? LineInfoModel.LineInfo)?.let { updateInfo(view, it) }
     }
 
-    private fun updateInfo(view: View, info: VideoProvider.LineInfo) {
-        val provider = App.from(context).videoProvider.getProvider(info.site) ?: emptyProvider
+    private fun updateInfo(view: View, info: LineInfoModel.LineInfo) {
+        val provider = context.lineProvider.getProvider(info.site) ?: emptyProvider
         view.item_video_api.text = provider.title
         view.item_video_api.tag = provider
         view.item_video_id.setText(info.id)
         view.item_video_offset.setText(info.offset.toString())
         view.item_video_title.setText(info.title)
-        view.item_load_danmaku.isEnabled = provider.hasDanmaku
+        view.item_load_danmaku.visibility = if(provider is VideoProvider.ProviderInfo) View.VISIBLE else View.INVISIBLE
+        view.item_load_danmaku.isEnabled = (provider as? VideoProvider.ProviderInfo)?.hasDanmaku?:false
         view.item_load_danmaku.isChecked = info.loadDanmaku
     }
 }

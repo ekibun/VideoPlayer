@@ -1,4 +1,4 @@
-package soko.ekibun.videoplayer.ui.video.line
+package soko.ekibun.videoplayer.ui.dialog
 
 import android.annotation.SuppressLint
 import android.app.Dialog
@@ -13,22 +13,31 @@ import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.JsEngine
 import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.bean.VideoSubject
-import soko.ekibun.videoplayer.model.VideoProvider
-import soko.ekibun.videoplayer.ui.video.VideoActivity
+import soko.ekibun.videoplayer.model.LineInfoModel
+import java.lang.reflect.Type
 
-class SearchDialog(val context: VideoActivity) : Dialog(context, R.style.AppTheme_Dialog) {
+class SearchDialog<T: ProviderAdapter.ProviderInfo>(val context: ProviderAdapter.LineProviderActivity<T>) : Dialog(context, R.style.AppTheme_Dialog) {
 
     companion object {
-        fun showDialog(context: VideoActivity, subject: VideoSubject, callback:()->Unit){
+        fun showDialog(
+            context: ProviderAdapter.LineProviderActivity<*>,
+            subject: VideoSubject,
+            callback:()->Unit,
+            typeT: Type, typeListT: Type
+        ){
             val dialog = SearchDialog(context)
             dialog.subject = subject
-            dialog.callback = callback
+            dialog.showLineDialog = {
+                if(it != null){
+                    LineDialog.showDialog(context, subject, it, callback, typeT, typeListT)
+                } else callback()
+            }
             dialog.show()
         }
     }
 
     lateinit var subject: VideoSubject
-    lateinit var callback: () -> Unit
+    lateinit var showLineDialog: (item: LineInfoModel.LineInfo?) -> Unit
 
     @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,21 +62,21 @@ class SearchDialog(val context: VideoActivity) : Dialog(context, R.style.AppThem
                 showSnackbar(view.list_search, "线路已存在，长按编辑此线路")
                 return@setOnItemClickListener
             }
-            val lines = (adapter.lines?: VideoProvider.LineInfoList())
+            val lines = (adapter.lines?: LineInfoModel.LineInfoList())
             lines.providers.add(adapter.data[position])
             lineInfoModel.saveInfos(subject, lines)
             adapter.lines = lines
-            callback()
+            showLineDialog(null)
             adapter.notifyItemChanged(position)
         }
         adapter.setOnItemLongClickListener { _, _, position ->
             val item = adapter.data[position]//?.let { item -> adapter.lines?.providers?.firstOrNull { it.site == item.site && it.id == item.id }?: item }
-            LineDialog.showDialog(context, subject, item, callback)
+            showLineDialog(item)
             dismiss()
             true
         }
         view.list_search.adapter = adapter
-        val searchCall = ArrayList<Pair<VideoProvider.ProviderInfo, JsEngine.ScriptTask<List<VideoProvider.LineInfo>>>>()
+        val searchCall = ArrayList<Pair<ProviderAdapter.ProviderInfo, JsEngine.ScriptTask<List<LineInfoModel.LineInfo>>>>()
 
         view.item_video_api.text = emptyProvider.title
         view.item_video_api.tag = emptyProvider
@@ -80,9 +89,9 @@ class SearchDialog(val context: VideoActivity) : Dialog(context, R.style.AppThem
             searchCall.clear()
 
             val jsEngine = App.from(context).jsEngine
-            val provider = view.item_video_api.tag as? VideoProvider.ProviderInfo?:emptyProvider
+            val provider = view.item_video_api.tag as? ProviderAdapter.ProviderInfo?:emptyProvider
             searchCall.addAll(if(provider == emptyProvider){
-                ArrayList(App.from(context).videoProvider.providerList.values.filter { it.search.isNotEmpty() }).filter { it.search.isNotEmpty() }.map {
+                ArrayList(context.lineProvider.providerList.values.filter { it.search.isNotEmpty() }).filter { it.search.isNotEmpty() }.map {
                     Pair(it, it.search("search_${it.site}", jsEngine, key))
                 }
             }else listOf(provider.let{ Pair(it, it.search("search_${it.site}", jsEngine, key)) }))
@@ -124,8 +133,8 @@ class SearchDialog(val context: VideoActivity) : Dialog(context, R.style.AppThem
     private fun updateProvider(view: View){
         val popList = ListPopupWindow(view.context)
         popList.anchorView = view.item_video_api
-        val videoProvider = App.from(view.context).videoProvider
-        val providers = ArrayList(videoProvider.providerList.values.filter { it.search.isNotEmpty() })
+        val videoProvider = context.lineProvider
+        val providers: ArrayList<ProviderAdapter.ProviderInfo> = ArrayList(videoProvider.providerList.values.filter { it.search.isNotEmpty() })
         providers.add(0, emptyProvider)
         popList.setAdapter(ProviderAdapter(view.context, providers))
         popList.isModal = true
@@ -141,8 +150,8 @@ class SearchDialog(val context: VideoActivity) : Dialog(context, R.style.AppThem
                 popList.dismiss()
                 if(position == 0) return@setOnItemLongClickListener false
                 //edit
-                val info = providers[position]
-                (view.context as VideoActivity).loadProvider(providers[position]) {
+                @Suppress("UNCHECKED_CAST") val info = providers[position] as T
+                context.loadProvider(info) {
                     videoProvider.removeProvider(info.site)
                     if (it != null) videoProvider.addProvider(it)
                     updateProvider(view)
@@ -150,13 +159,13 @@ class SearchDialog(val context: VideoActivity) : Dialog(context, R.style.AppThem
                 true
             }
         }
-        (view.item_video_api?.tag as? VideoProvider.LineInfo)?.let{ updateInfo(view, it) }
+        (view.item_video_api?.tag as? LineInfoModel.LineInfo)?.let{ updateInfo(view, it) }
     }
-    private fun updateInfo(view: View, info: VideoProvider.LineInfo){
-        val provider = App.from(view.context).videoProvider.getProvider(info.site)?:emptyProvider
+    private fun updateInfo(view: View, info: LineInfoModel.LineInfo){
+        val provider = context.lineProvider.getProvider(info.site)?:emptyProvider
         view.item_video_api.text = provider.title
         view.item_video_api.tag = provider
     }
 
-    private val emptyProvider = VideoProvider.ProviderInfo("", 0, "所有接口")
+    private val emptyProvider = ProviderAdapter.ProviderInfo("", 0, "所有接口")
 }

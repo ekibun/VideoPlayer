@@ -10,10 +10,7 @@ import com.google.android.exoplayer2.offline.Download
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import soko.ekibun.util.StorageUtil
-import soko.ekibun.videoplayer.model.LineInfoModel
-import soko.ekibun.videoplayer.model.ProgressModel
-import soko.ekibun.videoplayer.model.VideoCacheModel
-import soko.ekibun.videoplayer.model.VideoProvider
+import soko.ekibun.videoplayer.model.*
 import java.util.concurrent.Executors
 
 
@@ -24,6 +21,7 @@ class App:Application() {
     val handler = Handler{ true }
     val jsEngine by lazy { JsEngine(this) }
     val videoProvider by lazy { VideoProvider(this) }
+    val mangaProvider by lazy { MangaProvider(this) }
     val lineInfoModel by lazy { LineInfoModel(this) }
     val progressModel by lazy { ProgressModel(this) }
     val videoCacheModel by lazy { VideoCacheModel(this) }

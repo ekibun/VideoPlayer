@@ -117,7 +117,10 @@ class SubjectView(val context: VideoActivity) {
         if(context.isDestroyed) return
         context.runOnUiThread {
             val cacheEpisode = (App.from(context).videoCacheModel.getSubjectCacheList(subject)?.videoList?.map { it.episode }?:ArrayList()).sortedBy { it.sort }.sortedBy { it.cat }
-            val newSubjectEpisode = if(merge) (episodes?:listOf()).plus(subjectEpisode).distinctBy { it.id + it.parseSort() } else episodes?: subjectEpisode
+            episodes?.forEach { ep ->
+                ep.merge(subjectEpisode.firstOrNull { it.id == ep.id } ?: return@forEach)
+            }
+            val newSubjectEpisode = if(merge) (episodes?:listOf()).plus(subjectEpisode).distinctBy { it.id } else episodes?: subjectEpisode
             if(subjectEpisode.size != newSubjectEpisode.size) scrolled = false
             subjectEpisode = newSubjectEpisode
             val eps = subjectEpisode.filter { (it.status?:"") in listOf("Air") }

@@ -3,7 +3,7 @@ package soko.ekibun.util
 import android.content.Context
 import android.net.ConnectivityManager
 import android.content.Context.CONNECTIVITY_SERVICE
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 
 
 object NetworkUtil {

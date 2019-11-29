@@ -64,7 +64,7 @@ class VideoModel(private val context: VideoActivity, private val onAction: Liste
     private var videoInfoCall: HashMap<String, JsEngine.ScriptTask<VideoProvider.VideoInfo>> = HashMap()
     private var videoCall: HashMap<String,  JsEngine.ScriptTask<VideoProvider.VideoRequest>> = HashMap()
     //private val videoCacheModel by lazy{ App.getVideoCacheModel(content)}
-    fun getVideo(key: String, episode: VideoEpisode, subject: VideoSubject, info: VideoProvider.LineInfo?,
+    fun getVideo(key: String, episode: VideoEpisode, subject: VideoSubject, info: LineInfoModel.LineInfo?,
                  onGetVideoInfo: (VideoProvider.VideoInfo?, error: Exception?)->Unit,
                  onGetVideo: (VideoProvider.VideoRequest?, List<StreamKey>?, error: Exception?)->Unit,
                  onCheckNetwork: (()->Unit)->Unit) {

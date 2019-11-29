@@ -7,6 +7,7 @@ import com.chad.library.adapter.base.BaseViewHolder
 import kotlinx.android.synthetic.main.item_provider.view.*
 import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.R
+import soko.ekibun.videoplayer.model.LineInfoModel
 import soko.ekibun.videoplayer.model.VideoProvider
 
 class DanmakuListAdapter(data: MutableList<DanmakuInfo>? = null) :
@@ -22,7 +23,7 @@ class DanmakuListAdapter(data: MutableList<DanmakuInfo>? = null) :
     }
 
     data class DanmakuInfo(
-        val line: VideoProvider.LineInfo,
+        val line: LineInfoModel.LineInfo,
         var danmakus: HashSet<VideoProvider.DanmakuInfo> = HashSet(),
         var info: String = "",
         var videoInfo: VideoProvider.VideoInfo? = null,

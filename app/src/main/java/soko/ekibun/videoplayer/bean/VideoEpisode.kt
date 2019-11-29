@@ -19,6 +19,20 @@ data class VideoEpisode(
         var progress: String? = null
 ) : Parcelable {
 
+    /**
+     * 混合数据
+     */
+    fun merge(ep: VideoEpisode) {
+        sort = if (sort == 0f) ep.sort else sort
+        name = name ?: ep.name
+        cat = cat ?: ep.cat
+        duration = duration ?: ep.duration
+        airdate = ep.airdate ?: ep.airdate
+        comment = if (comment == 0) ep.comment else comment
+        desc = desc ?: ep.desc
+        status = if (status.isNullOrEmpty()) ep.status else status
+    }
+
     fun parseSort(): String{
         return if(cat.isNullOrEmpty() ||  cat == "本篇" )
             "第 ${DecimalFormat("#.##").format(sort)} 话"

@@ -2,7 +2,7 @@ package soko.ekibun.videoplayer.model
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import soko.ekibun.util.JsonUtil
 import soko.ekibun.videoplayer.bean.VideoEpisode
 import soko.ekibun.videoplayer.bean.VideoSubject
@@ -21,7 +21,7 @@ class ProgressModel(context: Context){
     }
 
     fun getProgress(subject: VideoSubject): Info? {
-        return JsonUtil.toEntity(sp.getString(prefKey(subject), "")!!, Info::class.java)
+        return JsonUtil.toEntity<Info>(sp.getString(prefKey(subject), "")!!)
     }
 
     data class Info(

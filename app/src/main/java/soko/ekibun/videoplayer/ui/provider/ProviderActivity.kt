@@ -46,7 +46,7 @@ class ProviderActivity : AppCompatActivity(), ColorPickerDialogListener {
         KeyboardUtil(this, root_layout)
 
         item_provider_color_hex.text = colorToString(0)
-        JsonUtil.toEntity(intent?.getStringExtra(EXTRA_PROVIDER_INFO)?:"", VideoProvider.ProviderInfo::class.java)?.let{ setProvider(it) }
+        JsonUtil.toEntity<VideoProvider.ProviderInfo>(intent?.getStringExtra(EXTRA_PROVIDER_INFO)?:"")?.let{ setProvider(it) }
 
         item_provider_color.setOnClickListener {
             ColorPickerDialog.newBuilder().setColor(color)
@@ -114,7 +114,7 @@ class ProviderActivity : AppCompatActivity(), ColorPickerDialogListener {
                 setResult(getProvider())
             }
             R.id.action_inport -> {
-                JsonUtil.toEntity(clipboardManager.primaryClip?.getItemAt(0)?.text?.toString()?:"", VideoProvider.ProviderInfo::class.java)?.let{
+                JsonUtil.toEntity<VideoProvider.ProviderInfo>(clipboardManager.primaryClip?.getItemAt(0)?.text?.toString()?:"")?.let{
                     setProvider(it)
                 }?:{
                     Snackbar.make(root_layout, "剪贴板没有数据", Snackbar.LENGTH_LONG).show()
@@ -130,7 +130,7 @@ class ProviderActivity : AppCompatActivity(), ColorPickerDialogListener {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.action_edit, menu)
-        if(JsonUtil.toEntity(intent?.getStringExtra(EXTRA_PROVIDER_INFO)?:"", VideoProvider.ProviderInfo::class.java) == null){
+        if(JsonUtil.toEntity<VideoProvider.ProviderInfo>(intent?.getStringExtra(EXTRA_PROVIDER_INFO)?:"") == null){
             menu?.findItem(R.id.action_remove)?.isVisible = false
         }
         return true

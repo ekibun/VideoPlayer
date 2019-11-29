@@ -39,7 +39,7 @@ class JsEngine(val context: App) {
             webview.onPageFinished = {
                 webview.evaluateJavascript(script) {
                     Log.v("javascript", it.toString())
-                    JsonUtil.toEntity(it, VideoProvider.VideoRequest::class.java)?.let{
+                    JsonUtil.toEntity<VideoProvider.VideoRequest>(it)?.let{
                         ret = it
                         finished = true
                         webview.onInterceptRequest = {}

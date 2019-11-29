@@ -2,7 +2,7 @@ package soko.ekibun.videoplayer.ui.video
 
 import android.annotation.SuppressLint
 import android.graphics.Color
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import android.view.View
 import android.widget.SeekBar
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,6 +18,7 @@ import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.JsEngine
 import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.bean.VideoEpisode
+import soko.ekibun.videoplayer.model.LineInfoModel
 import soko.ekibun.videoplayer.model.VideoProvider
 
 class DanmakuPresenter(
@@ -202,7 +203,7 @@ class DanmakuPresenter(
     private val videoInfoCalls = ArrayList<JsEngine.ScriptTask<VideoProvider.VideoInfo>>()
     private val danmakuCalls: ArrayList<JsEngine.ScriptTask<String>> = ArrayList()
     private val danmakuKeys: HashMap<DanmakuListAdapter.DanmakuInfo, String> = HashMap()
-    fun loadDanmaku(lines: List<VideoProvider.LineInfo>, episode: VideoEpisode) {
+    fun loadDanmaku(lines: List<LineInfoModel.LineInfo>, episode: VideoEpisode) {
         view.removeAllDanmakus(true)
         danmakuCalls.forEach { it.cancel(true) }
         danmakuCalls.clear()

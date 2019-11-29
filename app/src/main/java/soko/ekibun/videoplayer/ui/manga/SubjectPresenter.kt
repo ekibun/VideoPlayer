@@ -7,7 +7,10 @@ import kotlinx.android.synthetic.main.subject_detail.*
 import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.bean.VideoEpisode
 import soko.ekibun.videoplayer.bean.VideoSubject
+import soko.ekibun.videoplayer.model.LineInfoModel
+import soko.ekibun.videoplayer.model.MangaProvider
 import soko.ekibun.videoplayer.model.SubjectProvider
+import soko.ekibun.videoplayer.ui.dialog.LineDialog
 
 class SubjectPresenter(val context: MangaActivity) {
     val subject: VideoSubject get() = subjectProvider.subject
@@ -44,6 +47,9 @@ class SubjectPresenter(val context: MangaActivity) {
 
     private fun refreshLines(){
         val infos = lineInfoModel.getInfos(subject)
+        val editLines = { info: LineInfoModel.LineInfo? ->
+            LineDialog.showDialog<MangaProvider.ProviderInfo>(context, subject, info){ refreshLines() }
+        }
         context.runOnUiThread { subjectView.lineAdapter.setNewData(infos?.providers) }
         infos?.let{
             //subjectView.lineAdapter.setNewData(it.providers)
@@ -60,13 +66,13 @@ class SubjectPresenter(val context: MangaActivity) {
                 refreshLines()
             }
             subjectView.lineAdapter.setOnItemLongClickListener { _, _, position ->
-                // TODO LineDialog.showDialog(context, subject, it.providers[position]){ refreshLines() }
+                editLines(it.providers[position])
                 true
             }
         }
 
         context.item_lines.setOnClickListener{
-            // TODO LineDialog.showDialog(context, subject){ refreshLines() }
+            editLines(null)
         }
     }
 

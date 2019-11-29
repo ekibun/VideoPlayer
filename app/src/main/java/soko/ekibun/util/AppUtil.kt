@@ -1,10 +1,15 @@
 package soko.ekibun.util
 
+import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Point
+import android.os.Build
 import android.util.Size
 import android.view.WindowManager
+import soko.ekibun.videoplayer.ui.video.VideoActivity
 
 
 object AppUtil {
@@ -19,5 +24,16 @@ object AppUtil {
         intent.putExtra(Intent.EXTRA_TEXT, str)
         intent.type = "text/plain"
         context.startActivity(Intent.createChooser(intent, "share"))
+    }
+
+    const val REQUEST_STORAGE_CODE = 1
+    const val REQUEST_FILE_CODE = 2
+    const val REQUEST_PROVIDER = 3
+    fun checkStorage(context: Activity): Boolean{
+        if (Build.VERSION.SDK_INT >= 23 && context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            context.requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_STORAGE_CODE)
+            return false
+        }
+        return true
     }
 }

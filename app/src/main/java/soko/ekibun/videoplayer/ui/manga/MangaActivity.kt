@@ -6,16 +6,24 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
+import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_manga.*
 import soko.ekibun.util.AppUtil
-import soko.ekibun.util.SwipeBackActivity
+import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.bean.VideoSubject
+import soko.ekibun.videoplayer.model.MangaProvider
 import soko.ekibun.videoplayer.model.SubjectProvider
+import soko.ekibun.videoplayer.ui.dialog.ProviderAdapter
 import soko.ekibun.videoplayer.ui.setting.SettingsActivity
+import java.lang.reflect.Type
 
-class MangaActivity : SwipeBackActivity() {
-    val subjectPresenter by lazy { SubjectPresenter(this) }
+class MangaActivity : ProviderAdapter.LineProviderActivity<MangaProvider.ProviderInfo>() {
+    override val typeT: Type = object: TypeToken<MangaProvider.ProviderInfo>(){}.type
+    override val fileType: String = "image/*"
+    override val lineProvider by lazy { App.from(this).mangaProvider }
+    
+    private val subjectPresenter by lazy { SubjectPresenter(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +61,12 @@ class MangaActivity : SwipeBackActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.action_video, menu)
         return true
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        subjectPresenter.onActivityResult(requestCode, resultCode, data)
+        subjectPresenter.refreshSubject()
     }
 
     companion object {

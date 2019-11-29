@@ -126,7 +126,7 @@
                       android:clickable="true"
                       android:background="?android:attr/selectableItemBackground"
                       android:focusable="true"
-                      android:padding="12dp"
+                      android:padding="16dp"
                       android:textColor="?colorAccent"
                       android:text="搜索"/>
             <TextView android:id="@+id/item_file"
@@ -136,7 +136,7 @@
                       android:clickable="true"
                       android:background="?android:attr/selectableItemBackground"
                       android:focusable="true"
-                      android:padding="12dp"
+                      android:padding="16dp"
                       android:textColor="?colorAccent"
                       android:text="浏览"/>
             <View
@@ -150,7 +150,7 @@
                       android:clickable="true"
                       android:background="?android:attr/selectableItemBackground"
                       android:focusable="true"
-                      android:padding="12dp"
+                      android:padding="16dp"
                       android:textColor="?colorAccent"
                       android:text="删除"/>
             <TextView android:id="@+id/item_ok"
@@ -160,7 +160,7 @@
                       android:clickable="true"
                       android:background="?android:attr/selectableItemBackground"
                       android:focusable="true"
-                      android:padding="12dp"
+                      android:padding="16dp"
                       android:textColor="?colorAccent"
                       android:text="确定"/>
         </LinearLayout>
