@@ -19,6 +19,7 @@
             android:id="@+id/bottom_sheet"
             app:layout_behavior="@string/bottom_sheet_behavior"
             android:fillViewport="true"
+            android:fitsSystemWindows="true"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
@@ -79,4 +80,10 @@
                 android:paddingRight="12dp"
                 android:background="?android:colorBackground"/>
     </LinearLayout>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/item_snackbar"
+            android:layout_gravity="bottom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

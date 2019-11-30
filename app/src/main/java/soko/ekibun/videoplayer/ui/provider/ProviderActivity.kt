@@ -16,7 +16,6 @@ import com.jaredrummler.android.colorpicker.ColorPickerDialog
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import kotlinx.android.synthetic.main.activity_provider.*
 import soko.ekibun.util.JsonUtil
-import soko.ekibun.util.KeyboardUtil
 import soko.ekibun.util.ReflectUtil
 import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.ui.dialog.ProviderAdapter
@@ -45,7 +44,11 @@ class ProviderActivity : AppCompatActivity(), ColorPickerDialogListener {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        KeyboardUtil(this, root_layout)
+        val listPaddingBottom = detail_container.paddingBottom
+        root_layout.setOnApplyWindowInsetsListener { _, insets ->
+            detail_container.setPadding(detail_container.paddingLeft, detail_container.paddingTop, detail_container.paddingRight, listPaddingBottom + insets.systemWindowInsetBottom)
+            insets
+        }
 
         item_codes.layoutManager = LinearLayoutManager(this)
 

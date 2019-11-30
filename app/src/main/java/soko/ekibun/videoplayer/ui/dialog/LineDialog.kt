@@ -21,7 +21,6 @@ import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.bean.VideoSubject
 import soko.ekibun.videoplayer.model.LineInfoModel
 import soko.ekibun.videoplayer.model.VideoProvider
-import soko.ekibun.videoplayer.ui.video.VideoActivity
 import java.lang.reflect.Type
 
 class LineDialog<T: ProviderAdapter.ProviderInfo>(val context: ProviderAdapter.LineProviderActivity<T>) : Dialog(context, R.style.AppTheme_Dialog) {
@@ -104,7 +103,7 @@ class LineDialog<T: ProviderAdapter.ProviderInfo>(val context: ProviderAdapter.L
         }
 
         view.item_file.setOnClickListener {
-            if(context is VideoActivity) context.loadFile { file ->
+            context.loadFile { file ->
                 if (file == null) return@loadFile
                 updateInfo(view, LineInfoModel.LineInfo("", file))
             }
@@ -238,7 +237,7 @@ class LineDialog<T: ProviderAdapter.ProviderInfo>(val context: ProviderAdapter.L
         view.item_video_id.setText(info.id)
         view.item_video_offset.setText(info.offset.toString())
         view.item_video_title.setText(info.title)
-        view.item_load_danmaku.visibility = if(provider is VideoProvider.ProviderInfo) View.VISIBLE else View.INVISIBLE
+        view.item_load_danmaku.visibility = if(provider is VideoProvider.ProviderInfo) View.VISIBLE else View.GONE
         view.item_load_danmaku.isEnabled = (provider as? VideoProvider.ProviderInfo)?.hasDanmaku?:false
         view.item_load_danmaku.isChecked = info.loadDanmaku
     }

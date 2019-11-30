@@ -147,7 +147,7 @@ class JsEngine(val context: App) {
         override fun onPostExecute(result: String?) {
             result?.let { try{ onFinish(converter(it)) }
                 catch(e: Exception){ exception = e } }
-            exception?.let { it.printStackTrace(); onReject(it) }
+            exception?.let { Log.e("JsEngine",it.localizedMessage?:it.message?:""); onReject(it) }
             super.onPostExecute(result)
         }
 
