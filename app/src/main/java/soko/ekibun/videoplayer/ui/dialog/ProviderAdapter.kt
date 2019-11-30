@@ -12,15 +12,17 @@ import soko.ekibun.util.SwipeBackActivity
 import soko.ekibun.videoplayer.JsEngine
 import soko.ekibun.videoplayer.model.LineInfoModel
 import soko.ekibun.videoplayer.ui.provider.ProviderActivity
-import java.lang.reflect.Type
 
 class ProviderAdapter(context: Context?, data: List<ProviderInfo>?) : CommonAdapter<ProviderAdapter.ProviderInfo>(context, android.R.layout.simple_spinner_dropdown_item, data) {
 
+    @Target(AnnotationTarget.FIELD)
+    annotation class Code(val label: String, val index: Int)
+
     open class ProviderInfo(
-        val site: String,
-        val color: Int,
-        val title: String,
-        val search: String = ""
+        var site: String,
+        var color: Int,
+        var title: String,
+        @Code("搜索", 0) val search: String = ""
     ){
         fun search(scriptKey: String, jsEngine: JsEngine, key: String): JsEngine.ScriptTask<List<LineInfoModel.LineInfo>>{
             return JsEngine.ScriptTask(jsEngine,"var key = ${JsonUtil.toJson(key)};\n$search", scriptKey){
@@ -35,14 +37,7 @@ class ProviderAdapter(context: Context?, data: List<ProviderInfo>?) : CommonAdap
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
-
-            other as ProviderInfo
-
-            if (site != other.site) return false
-            if (color != other.color) return false
-            if (title != other.title) return false
-            if (search != other.search) return false
-
+            if (site != (other as ProviderInfo).site) return false
             return true
         }
     }
@@ -56,7 +51,7 @@ class ProviderAdapter(context: Context?, data: List<ProviderInfo>?) : CommonAdap
 
     abstract class LineProviderActivity<T: ProviderInfo>: SwipeBackActivity() {
         abstract val lineProvider: LineProvider<T>
-        abstract val typeT: Type
+        abstract val classT: Class<T>
         abstract val fileType: String
 
         private var loadFileCallback:((String?)-> Unit)? = null
@@ -73,6 +68,7 @@ class ProviderAdapter(context: Context?, data: List<ProviderInfo>?) : CommonAdap
         fun loadProvider(info: T?, callback: (T?) -> Unit) {
             loadProviderCallback = callback
             val intent = Intent(this, ProviderActivity::class.java)
+            intent.putExtra(ProviderActivity.EXTRA_PROVIDER_CLASS, classT)
             info?.let { intent.putExtra(ProviderActivity.EXTRA_PROVIDER_INFO, JsonUtil.toJson(it)) }
             startActivityForResult(intent, AppUtil.REQUEST_PROVIDER)
         }
@@ -99,8 +95,8 @@ class ProviderAdapter(context: Context?, data: List<ProviderInfo>?) : CommonAdap
             }
 
             if (requestCode == AppUtil.REQUEST_PROVIDER && resultCode == RESULT_OK) {//Provider
-                loadProviderCallback?.invoke(JsonUtil.toEntity<T>(data?.getStringExtra(
-                    ProviderActivity.EXTRA_PROVIDER_INFO)?:"", typeT))
+                loadProviderCallback?.invoke(JsonUtil.toEntity(data?.getStringExtra(
+                    ProviderActivity.EXTRA_PROVIDER_INFO)?:"", classT))
             }
         }
     }

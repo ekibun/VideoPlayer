@@ -112,78 +112,12 @@
                       android:id="@+id/item_provider_color_prev"
                       android:layout_margin="5dp"/>
             </LinearLayout>
-            <TextView
-                    android:layout_margin="8dp"
-                    android:layout_gravity="center_vertical"
-                    android:textAlignment="center"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="6dp"
-                    android:paddingEnd="6dp"
-                    android:textAppearance="@android:style/TextAppearance.Material.Subhead"
-                    android:text="搜索"/>
-            <com.jsdroid.editor.CodePane
-                    android:id="@+id/item_provider_search"
+            <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/item_codes"
+                    android:overScrollMode="never"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-            <TextView
-                    android:layout_margin="8dp"
-                    android:layout_gravity="center_vertical"
-                    android:textAlignment="center"
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingStart="6dp"
-                    android:paddingEnd="6dp"
-                    android:textAppearance="@android:style/TextAppearance.Material.Subhead"
-                    android:text="获取剧集信息"/>
-            <com.jsdroid.editor.CodePane
-                    android:id="@+id/item_provider_get_video_info"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-
-            <TextView
-                    android:layout_margin="8dp"
-                    android:layout_gravity="center_vertical"
-                    android:textAlignment="center"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="6dp"
-                    android:paddingEnd="6dp"
-                    android:textAppearance="@android:style/TextAppearance.Material.Subhead"
-                    android:text="获取视频信息"/>
-            <com.jsdroid.editor.CodePane
-                    android:id="@+id/item_provider_get_video"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-
-            <TextView
-                    android:layout_margin="8dp"
-                    android:layout_gravity="center_vertical"
-                    android:textAlignment="center"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="6dp"
-                    android:paddingEnd="6dp"
-                    android:textAppearance="@android:style/TextAppearance.Material.Subhead"
-                    android:text="获取弹幕信息"/>
-            <com.jsdroid.editor.CodePane
-                    android:id="@+id/item_provider_get_danmaku_key"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-            <TextView
-                    android:layout_margin="8dp"
-                    android:layout_gravity="center_vertical"
-                    android:textAlignment="center"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="6dp"
-                    android:paddingEnd="6dp"
-                    android:textAppearance="@android:style/TextAppearance.Material.Subhead"
-                    android:text="获取弹幕"/>
-            <com.jsdroid.editor.CodePane
-                    android:id="@+id/item_provider_get_danmaku"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
+                    tools:listitem="@layout/item_code_panel"/>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

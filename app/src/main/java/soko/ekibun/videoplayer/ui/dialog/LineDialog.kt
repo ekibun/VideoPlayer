@@ -8,7 +8,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
@@ -33,7 +32,6 @@ class LineDialog<T: ProviderAdapter.ProviderInfo>(val context: ProviderAdapter.L
             info: LineInfoModel.LineInfo? = null,
             noinline callback: () -> Unit
         ) {
-            Log.v("type", T::class.java.toString())
             showDialog(context, subject, info, callback, object : TypeToken<T>() {}.type, object : TypeToken<List<T>>() {}.type)
         }
 

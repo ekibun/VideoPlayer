@@ -14,7 +14,7 @@ class MangaProvider(context: Context): ProviderAdapter.LineProvider<MangaProvide
         color: Int,
         title: String,
         search: String = "",
-        val getManga: String = ""       // (line: LineInfo, episode: VideoEpisode) -> List<String>
+        @ProviderAdapter.Code("获取图片", 1) val getManga: String = ""       // (line: LineInfo, episode: VideoEpisode) -> List<String>
     ): ProviderAdapter.ProviderInfo(site, color, title, search) {
         fun getManga(scriptKey: String, jsEngine: JsEngine, line: LineInfoModel.LineInfo, episode: VideoEpisode): JsEngine.ScriptTask<List<String>> {
             return JsEngine.ScriptTask(jsEngine,"var line = ${JsonUtil.toJson(line)};var episode = ${JsonUtil.toJson(episode)};\n$getManga", scriptKey){

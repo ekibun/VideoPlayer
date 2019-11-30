@@ -23,4 +23,13 @@ object JsonUtil{
             null
         }
     }
+
+    fun <T> toEntity(json: String, clazz: Class<T>): T? {
+        return try{
+            GSON.fromJson(json, clazz)
+        }catch (e: Exception){
+            e.printStackTrace()
+            null
+        }
+    }
 }

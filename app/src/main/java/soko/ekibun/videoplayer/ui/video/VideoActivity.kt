@@ -17,7 +17,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
-import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.android.synthetic.main.subject_episode.*
 import soko.ekibun.util.AppUtil
@@ -31,10 +30,9 @@ import soko.ekibun.videoplayer.model.VideoProvider
 import soko.ekibun.videoplayer.service.DownloadService
 import soko.ekibun.videoplayer.ui.dialog.ProviderAdapter
 import soko.ekibun.videoplayer.ui.setting.SettingsActivity
-import java.lang.reflect.Type
 
 class VideoActivity : ProviderAdapter.LineProviderActivity<VideoProvider.ProviderInfo>() {
-    override val typeT: Type = object: TypeToken<VideoProvider.ProviderInfo>(){}.type
+    override val classT = VideoProvider.ProviderInfo::class.java
     override val fileType: String = "video/*"
     override val lineProvider by lazy { App.from(this).videoProvider }
 

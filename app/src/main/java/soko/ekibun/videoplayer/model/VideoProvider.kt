@@ -14,10 +14,10 @@ class VideoProvider(context: Context): ProviderAdapter.LineProvider<VideoProvide
         color: Int,
         title: String,
         search: String = "",
-        val getVideoInfo: String = "",  // (line: LineInfo, episode: VideoEpisode) -> VideoInfo
-        val getVideo: String = "",      // (video: VideoInfo) -> VideoRequest
-        val getDanmakuKey: String = "", // (video: VideoInfo) -> String
-        val getDanmaku: String = ""     // (video: VideoInfo, key: String, pos: Int) -> List<DanmakuInfo>
+        @ProviderAdapter.Code("获取剧集信息", 1) val getVideoInfo: String = "",  // (line: LineInfo, episode: VideoEpisode) -> VideoInfo
+        @ProviderAdapter.Code("获取视频信息", 2) val getVideo: String = "",      // (video: VideoInfo) -> VideoRequest
+        @ProviderAdapter.Code("获取弹幕信息", 3) val getDanmakuKey: String = "", // (video: VideoInfo) -> String
+        @ProviderAdapter.Code("获取弹幕", 4) val getDanmaku: String = ""     // (video: VideoInfo, key: String, pos: Int) -> List<DanmakuInfo>
     ): ProviderAdapter.ProviderInfo(site, color, title, search) {
         val hasDanmaku get() = getDanmaku.isNotEmpty()
 
