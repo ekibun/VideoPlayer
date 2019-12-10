@@ -16,11 +16,9 @@
             android:scaleType="centerCrop"
             tools:ignore="ContentDescription"/>
 
-    <androidx.recyclerview.widget.RecyclerView
+    <com.hippo.glview.view.GLRootView
             android:id="@+id/item_manga"
             android:visibility="invisible"
-            android:background="@android:color/black"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 

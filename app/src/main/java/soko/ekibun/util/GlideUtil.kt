@@ -4,6 +4,7 @@ package soko.ekibun.util
 
 import android.app.Activity
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.view.View
@@ -17,6 +18,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
+import com.hippo.image.Image
 
 /**
  * 防止Glide崩溃
@@ -30,8 +32,8 @@ object GlideUtil {
     /**
      * Glide进度
      */
-    fun loadWithProgress(url: String, view: View, options: RequestOptions, onProgress: (Float)->Unit, callback: (Int, Drawable?) -> Unit): Target<Drawable>? {
-        val request = with(view) ?: return null
+    fun loadWithProgress(url: String, context: Context, onProgress: (Float)->Unit, callback: (Int, Bitmap?) -> Unit): Target<Bitmap>? {
+        val request = with(context) ?: return null
         ProgressAppGlideModule.expect(url, object : ProgressAppGlideModule.UIonProgressListener {
             override fun onProgress(bytesRead: Long, expectedLength: Long) {
                 onProgress(bytesRead * 1f / expectedLength)
@@ -41,20 +43,20 @@ object GlideUtil {
                 return 1.0f
             }
         })
-        return request.asDrawable().load(GlideUrl(url, Headers { mapOf("referer" to url) })).apply(options).into(object : SimpleTarget<Drawable>() {
+        return request.asBitmap().load(GlideUrl(url, Headers { mapOf("referer" to url) })).into(object : SimpleTarget<Bitmap>() {
             override fun onLoadStarted(placeholder: Drawable?) {
-                callback(TYPE_PLACEHOLDER, placeholder)
+                callback(TYPE_PLACEHOLDER, null)
             }
 
             override fun onLoadFailed(errorDrawable: Drawable?) {
-                callback(TYPE_ERROR, errorDrawable)
+                callback(TYPE_ERROR, null)
             }
 
             override fun onLoadCleared(placeholder: Drawable?) {
                 callback(TYPE_PLACEHOLDER, null)
             }
 
-            override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                 callback(TYPE_RESOURCE, resource)
             }
 
