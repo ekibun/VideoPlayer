@@ -13,7 +13,7 @@ import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.ui.view.controller.*
 import java.util.*
 
-class VideoController(view: ViewGroup, videoActivity: VideoActivity,
+class VideoController(view: ViewGroup,
                       private val actionListener: OnActionListener,
                       private val isFullScreen: ()->Boolean = {false}){
     interface OnActionListener {
@@ -40,7 +40,6 @@ class VideoController(view: ViewGroup, videoActivity: VideoActivity,
         var lastTime = 0L
         var dblclick = false
         view.setOnTouchListener { _, event ->
-            videoActivity.shouldCancelActivity = false
             when(event.action){
                 MotionEvent.ACTION_DOWN->{
                     val curTime = System.currentTimeMillis()

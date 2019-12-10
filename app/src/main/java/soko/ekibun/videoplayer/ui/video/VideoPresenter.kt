@@ -37,7 +37,7 @@ class VideoPresenter(val context: VideoActivity) {
     }
 
     val controller: VideoController by lazy {
-        VideoController(context.controller_frame, context, object: VideoController.OnActionListener{
+        VideoController(context.controller_frame, object: VideoController.OnActionListener{
             override fun onPlayPause() {
                 doPlayPause(!videoModel.player.playWhenReady)
             }

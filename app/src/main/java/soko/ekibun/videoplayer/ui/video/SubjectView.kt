@@ -7,7 +7,6 @@ import android.view.View
 import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.chad.library.adapter.base.entity.SectionEntity
 import com.oushangfeng.pinnedsectionitemdecoration.PinnedHeaderItemDecoration
@@ -15,6 +14,8 @@ import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.android.synthetic.main.subject_detail.*
 import kotlinx.android.synthetic.main.subject_episode.*
+import kotlinx.android.synthetic.main.subject_infolist.*
+import soko.ekibun.util.GlideUtil
 import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.bean.VideoEpisode
@@ -30,9 +31,7 @@ class SubjectView(val context: VideoActivity) {
 
     init {
         context.episode_list.adapter = episodeAdapter
-        val layoutManager = LinearLayoutManager(context)
-        layoutManager.orientation = RecyclerView.HORIZONTAL
-        context.episode_list.layoutManager = layoutManager
+        context.episode_list.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
         context.episode_list.isNestedScrollingEnabled = false
 
         context.episode_detail_list.adapter = episodeDetailAdapter
@@ -53,16 +52,6 @@ class SubjectView(val context: VideoActivity) {
         context.episode_detail.setOnClickListener{
             showEpisodeDetail(true)
         }
-
-        val swipeTouchListener = View.OnTouchListener{ v, _ ->
-            if((v as? RecyclerView)?.canScrollHorizontally(1) == true || (v as? RecyclerView)?.canScrollHorizontally(-1) == true)
-                context.shouldCancelActivity = false
-            false
-        }
-        context.episode_list.setOnTouchListener(swipeTouchListener)
-        context.season_list.setOnTouchListener(swipeTouchListener)
-        context.season_list.setOnTouchListener(swipeTouchListener)
-
     }
 
     private val weekList = listOf("", "周一", "周二", "周三", "周四", "周五", "周六", "周日")
@@ -92,16 +81,14 @@ class SubjectView(val context: VideoActivity) {
             }()
             context.item_score.text = subject.rating.toString()
             context.item_score_count.text = "${subject.rating_count}人"
-            Glide.with(context.item_cover)
-                .applyDefaultRequestOptions(RequestOptions.placeholderOf(context.item_cover.drawable))
-                .load(subject.image)
-                .apply(RequestOptions.errorOf(R.drawable.ic_404))
-                .into(context.item_cover)
-            Glide.with(context.item_cover_blur)
-                .applyDefaultRequestOptions(RequestOptions.placeholderOf(context.item_cover_blur.drawable))
-                .load(subject.image)
-                .apply(RequestOptions.bitmapTransform(BlurTransformation(25, 8)))
-                .into(context.item_cover_blur)
+            GlideUtil.with(context.item_cover)
+                ?.load(subject.image)
+                ?.apply(RequestOptions.errorOf(R.drawable.ic_404).placeholder(context.item_cover.drawable))
+                ?.into(context.item_cover)
+            GlideUtil.with(context.item_cover_blur)
+                ?.load(subject.image)
+                ?.apply(RequestOptions.bitmapTransform(BlurTransformation(25, 8)).placeholder(context.item_cover_blur.drawable))
+                ?.into(context.item_cover_blur)
             updateEpisode(subject.eps, subject, false)
             //collection
             context.item_collect_info.text = if(subject.collect.isNullOrEmpty()) "收藏" else subject.collect

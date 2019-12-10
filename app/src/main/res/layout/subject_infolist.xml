@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content" xmlns:tools="http://schemas.android.com/tools"
+              android:divider="@drawable/divider"
+              android:showDividers="middle"
+              android:orientation="vertical"
+              android:background="@drawable/bg_round_dialog">
+    <FrameLayout android:id="@+id/item_detail"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:clickable="true"
+                 android:background="?android:attr/selectableItemBackground"
+                 android:focusable="true"
+                 android:paddingTop="12dp"
+                 android:paddingBottom="8dp">
+        <include layout="@layout/subject_detail"/>
+    </FrameLayout>
+    <LinearLayout
+            android:id="@+id/item_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:focusable="true"
+            android:padding="12dp">
+        <TextView
+                android:id="@+id/item_progress_info"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:layout_gravity="center_vertical"
+                android:textColor="?android:textColorPrimary"
+                tools:text="上次看到 第 3 话"
+                android:ellipsize="end"/>
+        <TextView
+                android:id="@+id/item_progress_play"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/ic_play_accent"
+                android:gravity="center_vertical"
+                tools:text=" 继续观看"
+                android:textColor="?colorAccent"/>
+    </LinearLayout>
+    <include android:id="@+id/item_episodes"
+             layout="@layout/subject_episode"/>
+</LinearLayout>

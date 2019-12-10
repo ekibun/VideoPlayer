@@ -1,5 +1,6 @@
 package soko.ekibun.videoplayer.ui.video
 
+import android.content.Context
 import android.content.res.ColorStateList
 import android.view.View
 import com.chad.library.adapter.base.BaseQuickAdapter
@@ -11,7 +12,7 @@ import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.bean.VideoEpisode
 import soko.ekibun.videoplayer.model.VideoCacheModel
 
-class SmallEpisodeAdapter(val context: VideoActivity, data: MutableList<VideoEpisode>? = null) :
+class SmallEpisodeAdapter(val context: Context, data: MutableList<VideoEpisode>? = null) :
         BaseQuickAdapter<VideoEpisode, BaseViewHolder>
         (R.layout.item_episode_small, data) {
     private val videoCacheModel by lazy{ App.from(context).videoCacheModel }
@@ -32,8 +33,12 @@ class SmallEpisodeAdapter(val context: VideoActivity, data: MutableList<VideoEpi
         helper.itemView.item_container.backgroundTintList = ColorStateList.valueOf(color)
         helper.addOnClickListener(R.id.item_container)
         helper.addOnLongClickListener(R.id.item_container)
-        val videoCache = videoCacheModel.getVideoCache(item, context.subjectPresenter.subject)
-        updateDownload(helper.itemView, videoCache?.percentDownloaded?: Float.NaN, videoCache?.bytesDownloaded?:0L, videoCache != null)
+
+        // TODO Compat Manga
+        (context as? VideoActivity)?.subjectPresenter?.let {
+            val videoCache = videoCacheModel.getVideoCache(item, it.subject)
+            updateDownload(helper.itemView, videoCache?.percentDownloaded?: Float.NaN, videoCache?.bytesDownloaded?:0L, videoCache != null)
+        }
     }
     fun updateDownload(view: View, percent: Float, bytes: Long, hasCache: Boolean, download: Boolean = false){
         view.item_icon.visibility = if(hasCache) View.VISIBLE else View.INVISIBLE

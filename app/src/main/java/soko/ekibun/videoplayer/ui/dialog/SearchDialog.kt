@@ -2,13 +2,16 @@ package soko.ekibun.videoplayer.ui.dialog
 
 import android.annotation.SuppressLint
 import android.app.Dialog
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.ListPopupWindow
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.dialog_search_line.view.*
+import soko.ekibun.util.ThemeUtil
 import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.JsEngine
 import soko.ekibun.videoplayer.R
@@ -30,7 +33,7 @@ class SearchDialog<T : ProviderAdapter.ProviderInfo>(val context: ProviderAdapte
             dialog.subject = subject
             dialog.showLineDialog = {
                 if (it != null) {
-                    LineDialog.showDialog(context, subject, it, callback, typeT, typeListT)
+                    LineDialog.showDialog(context, subject, it, typeT, typeListT, callback)
                 } else callback()
             }
             dialog.show()
@@ -111,13 +114,44 @@ class SearchDialog<T : ProviderAdapter.ProviderInfo>(val context: ProviderAdapte
             }
         }
 
+        view.post {
+            val behavior = BottomSheetBehavior.from(view.bottom_sheet)
+            behavior.peekHeight = view.height / 2
+            behavior.isHideable = true
+            behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+                override fun onStateChanged(bottomSheet: View, @BottomSheetBehavior.State newState: Int) {
+                    if (newState == BottomSheetBehavior.STATE_HIDDEN) dismiss()
+                }
+
+                override fun onSlide(bottomSheet: View, slideOffset: Float) { /* no-op */
+                }
+            })
+        }
+
         val paddingTop = view.bottom_sheet.paddingTop
         val paddingBottom = view.list_search.paddingBottom
         view.setOnApplyWindowInsetsListener { _, insets ->
-            view.bottom_sheet.setPadding(view.bottom_sheet.paddingLeft, paddingTop + insets.systemWindowInsetTop, view.bottom_sheet.paddingRight, view.bottom_sheet.paddingBottom)
-            view.list_search.setPadding(view.list_search.paddingLeft, view.list_search.paddingTop, view.list_search.paddingRight, paddingBottom + insets.systemWindowInsetBottom)
-            view.item_snackbar.setPadding(0,0,0, insets.systemWindowInsetBottom)
+            view.bottom_sheet.setPadding(
+                view.bottom_sheet.paddingLeft,
+                paddingTop + insets.systemWindowInsetTop,
+                view.bottom_sheet.paddingRight,
+                view.bottom_sheet.paddingBottom
+            )
+            view.list_search.setPadding(
+                view.list_search.paddingLeft,
+                view.list_search.paddingTop,
+                view.list_search.paddingRight,
+                paddingBottom + insets.systemWindowInsetBottom
+            )
+            view.item_snackbar.setPadding(0, 0, 0, insets.systemWindowInsetBottom)
             insets.consumeSystemWindowInsets()
+        }
+
+        window?.let {
+            it.decorView.systemUiVisibility =
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                        (if (Build.VERSION.SDK_INT >= 26) View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION else 0)
+            ThemeUtil.updateNavigationTheme(it, view.context)
         }
 
         window?.attributes?.let {

@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.util.Log
 import com.google.android.exoplayer2.offline.DownloadHelper
+import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.android.synthetic.main.item_episode.view.*
 import kotlinx.android.synthetic.main.subject_detail.*
@@ -125,7 +126,7 @@ class SubjectPresenter(val context: VideoActivity) {
     private fun refreshLines(){
         val infos = lineInfoModel.getInfos(subject)
         val editLines = { info: LineInfoModel.LineInfo? ->
-            LineDialog.showDialog<VideoProvider.ProviderInfo>(context, subject, info){ refreshLines() }
+            LineDialog.showDialog(context, subject, info, object : TypeToken<VideoProvider.ProviderInfo>() {}.type, object : TypeToken<List<VideoProvider.ProviderInfo>>() {}.type){ refreshLines() }
         }
         context.runOnUiThread { subjectView.lineAdapter.setNewData(infos?.providers) }
         infos?.let{

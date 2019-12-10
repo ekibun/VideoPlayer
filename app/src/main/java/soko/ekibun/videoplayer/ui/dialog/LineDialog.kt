@@ -7,7 +7,9 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
@@ -16,6 +18,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.dialog_add_line.view.*
 import soko.ekibun.util.JsonUtil
+import soko.ekibun.util.ThemeUtil
 import soko.ekibun.videoplayer.App
 import soko.ekibun.videoplayer.R
 import soko.ekibun.videoplayer.bean.VideoSubject
@@ -25,21 +28,12 @@ import java.lang.reflect.Type
 
 class LineDialog<T: ProviderAdapter.ProviderInfo>(val context: ProviderAdapter.LineProviderActivity<T>) : Dialog(context, R.style.AppTheme_Dialog) {
     companion object {
-        inline fun <reified T: ProviderAdapter.ProviderInfo> showDialog(
-            context: ProviderAdapter.LineProviderActivity<*>,
-            subject: VideoSubject,
-            info: LineInfoModel.LineInfo? = null,
-            noinline callback: () -> Unit
-        ) {
-            showDialog(context, subject, info, callback, object : TypeToken<T>() {}.type, object : TypeToken<List<T>>() {}.type)
-        }
-
         fun showDialog(
             context: ProviderAdapter.LineProviderActivity<*>,
             subject: VideoSubject,
             info: LineInfoModel.LineInfo? = null,
-            callback: () -> Unit,
-            typeT: Type, typeListT: Type
+            typeT: Type, typeListT: Type,
+            callback: () -> Unit
         ) {
             val dialog = LineDialog(context)
             dialog.subject = subject
@@ -137,6 +131,11 @@ class LineDialog<T: ProviderAdapter.ProviderInfo>(val context: ProviderAdapter.L
             insets.consumeSystemWindowInsets()
         }
 
+        window?.let {
+            it.decorView.systemUiVisibility =  View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                    (if(Build.VERSION.SDK_INT >= 26) View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION else 0)
+            ThemeUtil.updateNavigationTheme(it, view.context) }
+
         window?.attributes?.let {
             it.dimAmount = 0.6f
             window?.attributes = it
@@ -149,17 +148,17 @@ class LineDialog<T: ProviderAdapter.ProviderInfo>(val context: ProviderAdapter.L
     val clipboardManager by lazy { context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
 
     private fun updateProvider(view: View) {
-        val popList = ListPopupWindow(context)
-        popList.anchorView = view.item_video_api
-        val providerList: ArrayList<ProviderAdapter.ProviderInfo> = ArrayList(context.lineProvider.providerList.values)
-
-        providerList.add(0, emptyProvider)
-        providerList.add(ProviderAdapter.ProviderInfo("", 0, "添加..."))
-        providerList.add(ProviderAdapter.ProviderInfo("", 0, "导出..."))
-        providerList.add(ProviderAdapter.ProviderInfo("", 0, "导入..."))
-        popList.setAdapter(ProviderAdapter(context, providerList))
-        popList.isModal = true
         view.item_video_api.setOnClickListener {
+            val popList = ListPopupWindow(context)
+            popList.anchorView = view.item_video_api
+            val providerList: ArrayList<ProviderAdapter.ProviderInfo> = ArrayList(context.lineProvider.providerList.values)
+
+            providerList.add(0, emptyProvider)
+            providerList.add(ProviderAdapter.ProviderInfo("", 0, "添加..."))
+            providerList.add(ProviderAdapter.ProviderInfo("", 0, "导出..."))
+            providerList.add(ProviderAdapter.ProviderInfo("", 0, "导入..."))
+            popList.setAdapter(ProviderAdapter(context, providerList))
+            popList.isModal = true
             popList.show()
             popList.listView?.setOnItemClickListener { _, _, position, _ ->
                 popList.dismiss()
@@ -195,6 +194,7 @@ class LineDialog<T: ProviderAdapter.ProviderInfo>(val context: ProviderAdapter.L
                             else context.lineProvider.addProvider(it)
                         }
                         //inport
+                        Log.v("type", typeListT.toString())
                         JsonUtil.toEntity<List<T>>(
                             clipboardManager.primaryClip?.getItemAt(0)?.text?.toString() ?: "", typeListT
                         )?.let { list ->

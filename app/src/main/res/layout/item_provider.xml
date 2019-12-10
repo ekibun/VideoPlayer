@@ -10,9 +10,7 @@
         android:paddingBottom="4dp"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"
-        android:clickable="true"
-        android:background="?android:attr/selectableItemBackground"
-        android:focusable="true">
+        android:background="?android:attr/selectableItemBackground">
 
     <TextView
             android:id="@+id/item_title"

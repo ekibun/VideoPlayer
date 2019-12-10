@@ -3,12 +3,12 @@ package soko.ekibun.videoplayer.ui.dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import androidx.appcompat.app.AppCompatActivity
 import com.zhy.adapter.abslistview.CommonAdapter
 import com.zhy.adapter.abslistview.ViewHolder
 import soko.ekibun.util.AppUtil
 import soko.ekibun.util.JsonUtil
 import soko.ekibun.util.StorageUtil
-import soko.ekibun.util.SwipeBackActivity
 import soko.ekibun.videoplayer.JsEngine
 import soko.ekibun.videoplayer.model.LineInfoModel
 import soko.ekibun.videoplayer.ui.provider.ProviderActivity
@@ -49,7 +49,7 @@ class ProviderAdapter(context: Context?, data: List<ProviderInfo>?) : CommonAdap
         fun removeProvider(site: String)
     }
 
-    abstract class LineProviderActivity<T: ProviderInfo>: SwipeBackActivity() {
+    abstract class LineProviderActivity<T: ProviderInfo>: AppCompatActivity() {
         abstract val lineProvider: LineProvider<T>
         abstract val classT: Class<T>
         abstract val fileType: String

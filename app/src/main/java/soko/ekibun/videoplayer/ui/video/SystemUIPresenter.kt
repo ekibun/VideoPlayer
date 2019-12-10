@@ -11,6 +11,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.android.synthetic.main.video_player.*
 import soko.ekibun.util.AppUtil
+import soko.ekibun.util.ThemeUtil
 
 class SystemUIPresenter(private val context: VideoActivity){
     fun init(){
@@ -102,7 +103,7 @@ class SystemUIPresenter(private val context: VideoActivity){
                 context.toolbar_layout.fitsSystemWindows = true
                 context.controller_frame_container.fitsSystemWindows=true
                 context.window.statusBarColor = Color.TRANSPARENT
-                //content.window.navigationBarColor = Color.TRANSPARENT
+                context.window.navigationBarColor = Color.TRANSPARENT
                 updateSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -119,7 +120,7 @@ class SystemUIPresenter(private val context: VideoActivity){
                 context.toolbar_layout.fitsSystemWindows = true
                 context.window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
 
-                updateSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+                updateSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
             }
             Visibility.FULLSCREEN_IMMERSIVE -> {
                 context.root_layout.fitsSystemWindows=true
@@ -128,9 +129,10 @@ class SystemUIPresenter(private val context: VideoActivity){
                 context.toolbar_layout.fitsSystemWindows = true
                 context.controller_frame_container.fitsSystemWindows=true
 
-                updateSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+                updateSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
             }
         }
+        ThemeUtil.updateNavigationTheme(context)
     }
 
     private fun updateSystemUiVisibility(visibility: Int){

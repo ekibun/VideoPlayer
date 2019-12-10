@@ -179,11 +179,6 @@ class VideoActivity : ProviderAdapter.LineProviderActivity<VideoProvider.Provide
         }
     }
 
-    override fun processBack(){
-        if(systemUIPresenter.isLandscape || videoPresenter.videoModel.player.playWhenReady || episode_detail_list.visibility == View.VISIBLE) return
-        super.processBack()
-    }
-
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK){
             when {

@@ -9,14 +9,35 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+    <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/item_cover_blur"
+            android:scaleType="centerCrop"
+            tools:ignore="ContentDescription"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/item_manga"
+            android:visibility="invisible"
+            android:background="@android:color/black"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    <View
+            android:id="@+id/item_mask"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#55000000"/>
+
     <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/app_bar"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:fitsSystemWindows="true"
-            android:background="?colorPrimaryBackground"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            android:visibility="invisible">
+            app:elevation="0dp"
+            android:background="@android:color/transparent"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
         <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:transitionName="title"
@@ -29,73 +50,12 @@
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/item_cover_blur"
-            android:scaleType="centerCrop"
-            tools:ignore="ContentDescription"/>
-    <View
-            android:id="@+id/item_mask"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#55000000"/>
-
     <androidx.core.widget.NestedScrollView
             android:id="@+id/bottom_sheet"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:overScrollMode="never"
-            app:layout_behavior="@string/bottom_sheet_behavior"
-            android:fillViewport="true">
-        <LinearLayout android:id="@+id/subject_detail"
-                      android:layout_width="match_parent"
-                      android:layout_height="match_parent"
-                      android:background="@drawable/bg_round_dialog"
-                      android:divider="@drawable/divider"
-                      android:showDividers="middle"
-                      android:orientation="vertical">
-            <androidx.appcompat.widget.Toolbar
-                    android:id="@+id/toolbar_bottom"
-                    android:layout_width="match_parent"
-                    tools:title="Subject Title"
-                    android:layout_height="?attr/actionBarSize">
-            </androidx.appcompat.widget.Toolbar>
-            <FrameLayout android:id="@+id/item_detail"
-                         android:layout_width="match_parent"
-                         android:layout_height="wrap_content"
-                         android:clickable="true"
-                         android:background="?android:attr/selectableItemBackground"
-                         android:focusable="true"
-                         android:paddingTop="12dp"
-                         android:paddingBottom="8dp">
-                <include layout="@layout/subject_detail"/>
-            </FrameLayout>
-            <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                <TextView android:layout_width="match_parent"
-                          android:layout_height="wrap_content"
-                          android:textAppearance="@android:style/TextAppearance.Material.Subhead"
-                          android:padding="12dp"
-                          android:text="线路"/>
-                <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/line_list"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:overScrollMode="never"
-                        tools:listitem="@layout/item_provider"/>
-                <TextView
-                        android:padding="12dp"
-                        android:clickable="true"
-                        android:background="?android:attr/selectableItemBackground"
-                        android:focusable="true"
-                        android:id="@+id/item_lines"
-                        android:layout_width="match_parent"
-                        android:text="添加线路"
-                        android:layout_height="wrap_content"/>
-            </LinearLayout>
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom">
+        <include android:id="@+id/subject_detail"
+                 layout="@layout/subject_infolist"/>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

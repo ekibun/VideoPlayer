@@ -5,6 +5,7 @@ import android.view.View
 import android.view.animation.AnimationUtils
 import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.android.synthetic.main.error_frame.*
+import kotlinx.android.synthetic.main.subject_infolist.*
 import kotlinx.android.synthetic.main.video_player.*
 import soko.ekibun.videoplayer.model.ProgressModel
 import soko.ekibun.videoplayer.ui.view.controller.Controller

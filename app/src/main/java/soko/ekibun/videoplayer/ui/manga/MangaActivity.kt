@@ -40,7 +40,7 @@ class MangaActivity : ProviderAdapter.LineProviderActivity<MangaProvider.Provide
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK){
-            processBack()
+            finish()
             return true
         }
         return super.onKeyDown(keyCode, event)
@@ -48,7 +48,7 @@ class MangaActivity : ProviderAdapter.LineProviderActivity<MangaProvider.Provide
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            android.R.id.home -> processBack()
+            android.R.id.home -> finish()
             R.id.action_share -> AppUtil.shareString(this, "${subjectPresenter.subject.name}\n${subjectPresenter.subject.url}")
             R.id.action_refresh -> subjectPresenter.refreshSubject()
             R.id.action_settings -> SettingsActivity.startActivity(this)
