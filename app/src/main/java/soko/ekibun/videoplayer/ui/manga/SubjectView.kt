@@ -10,8 +10,6 @@ import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.request.RequestOptions
-import com.hippo.glgallery.GalleryView
-import com.hippo.glgallery.SimpleAdapter
 import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.android.synthetic.main.activity_manga.*
 import kotlinx.android.synthetic.main.subject_detail.*
@@ -33,47 +31,6 @@ class SubjectView(val context: MangaActivity) {
         view.gravity = Gravity.CENTER
         view.height = ResourceUtil.dip2px(context, 65f)
         view
-    }
-
-    var galleryProvider: MangaGalleryProvider? = null
-    fun createGalleryView(): MangaGalleryProvider {
-        galleryProvider?.stop()
-        val provider = MangaGalleryProvider(context)
-        galleryProvider = provider
-        val galleryAdapter = SimpleAdapter(context.item_manga, provider)
-        provider.setListener(galleryAdapter)
-        provider.setGLRoot(context.item_manga)
-        val primaryColor = ResourceUtil.resolveColorAttr(context, R.attr.colorAccent)
-        val galleryView = GalleryView.Builder(context, galleryAdapter)
-            .setListener(object: GalleryView.Listener{
-                override fun onLongPressPage(index: Int) {
-                    // TODO
-                }
-
-                override fun onTapSliderArea() {
-                    context.runOnUiThread {
-                        showInfo(true)
-                    }
-                }
-
-                override fun onTapMenuArea() {
-                    // TODO
-                }
-
-                override fun onUpdateCurrentIndex(index: Int) {
-                    // TODO
-                }
-
-            })
-            .setLayoutMode(GalleryView.LAYOUT_TOP_TO_BOTTOM)
-            .setScaleMode(GalleryView.SCALE_FIT)
-            .setStartPosition(GalleryView.START_POSITION_TOP_RIGHT)
-            .setEdgeColor(primaryColor and 0xffffff or 0x33000000)
-            .setStartPage(0)
-            .build()
-        context.item_manga.setContentPane(galleryView)
-        provider.start()
-        return provider
     }
 
     init {

@@ -59,7 +59,7 @@ class MangaAdapter(context: Context, data: MutableList<MangaProvider.ImageInfo>?
     private fun setImage(helper: BaseViewHolder, item: MangaProvider.ImageInfo, imageRequest: MangaProvider.ImageRequest){
         helper.itemView.loading_progress.isIndeterminate = false
         helper.itemView.loading_progress.progress = 0
-        GlideUtil.loadWithProgress(imageRequest.url, helper.itemView.item_image, RequestOptions(), {
+        GlideUtil.loadWithProgress(imageRequest.url, helper.itemView.item_image,  {
             if(helper.itemView.tag == item) helper.itemView.loading_progress.progress = (it * 100).toInt()
         }, { type, drawable ->
             helper.itemView.item_image.visibility = View.VISIBLE
