@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import kotlinx.android.synthetic.main.activity_manga.*
 import soko.ekibun.util.AppUtil
 import soko.ekibun.videoplayer.App
@@ -54,6 +55,11 @@ class MangaActivity : ProviderAdapter.LineProviderActivity<MangaProvider.Provide
             R.id.action_settings -> SettingsActivity.startActivity(this)
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        subjectPresenter.subjectView.showInfo(item_mask.visibility == View.VISIBLE)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

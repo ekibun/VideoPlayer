@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.view.Gravity
-import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.TextView
@@ -103,29 +102,12 @@ class SubjectView(val context: MangaActivity) {
             insets
         }
 
-        var downX = 0f
-        var downY = 0f
-        context.item_manga.setOnTouchListener { v, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
-                    downX = event.x
-                    downY = event.y
-                    true
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
-                    if (Math.abs(event.x - downX) + Math.abs(event.y - downY) < 10) showInfo(true)
-                    false
-                }
-                else -> false
-            }
-        }
-
         context.item_mask.setOnClickListener {
             showInfo(false)
         }
     }
 
-    private fun showInfo(show: Boolean) {
+    fun showInfo(show: Boolean) {
         if (context.item_manga.visibility != View.VISIBLE) return
 
         context.window.decorView.systemUiVisibility = if (show)

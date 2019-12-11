@@ -6,6 +6,8 @@ import android.content.res.ColorStateList
 import android.util.Log
 import android.view.View
 import android.widget.ListPopupWindow
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_manga.*
 import kotlinx.android.synthetic.main.subject_detail.*
@@ -17,6 +19,7 @@ import soko.ekibun.videoplayer.model.LineInfoModel
 import soko.ekibun.videoplayer.model.MangaProvider
 import soko.ekibun.videoplayer.model.SubjectProvider
 import soko.ekibun.videoplayer.ui.dialog.LineDialog
+import soko.ekibun.videoplayer.ui.view.ScalableLayoutManager
 
 
 class SubjectPresenter(val context: MangaActivity) {
@@ -25,6 +28,7 @@ class SubjectPresenter(val context: MangaActivity) {
     private val mangaProvider by lazy{ App.from(context).mangaProvider }
     private val jsEngine by lazy { App.from(context).jsEngine }
     val subjectView = SubjectView(context)
+    val mangaAdapter by lazy { MangaAdapter(context) }
 
 
     private val subjectProvider = SubjectProvider(context, object: SubjectProvider.OnChangeListener {
@@ -49,6 +53,14 @@ class SubjectPresenter(val context: MangaActivity) {
         subjectView.updateSubject(subject)
         subjectProvider.bindService()
         refreshLines()
+        val layoutManager = ScalableLayoutManager(context)
+        layoutManager.setupWithRecyclerView(context.item_manga) { _, _ ->
+            subjectView.showInfo(true)
+        }
+        context.item_manga.adapter = mangaAdapter
+
+        val dividerItemDecoration = DividerItemDecoration(context, LinearLayoutManager.VERTICAL)
+        context.item_manga.addItemDecoration(dividerItemDecoration)
 
         context.item_collect.setOnClickListener {
             subjectProvider.updateCollection()
@@ -57,11 +69,10 @@ class SubjectPresenter(val context: MangaActivity) {
             val ep = subjectView.episodeAdapter.data[position]
             val provider = mangaProvider.getProvider(ep.site)?: return@setOnItemChildClickListener
             context.item_manga.visibility = View.VISIBLE
-            val galleryProvider = subjectView.createGalleryView()
+            mangaAdapter.setNewData(null)
+            layoutManager.reset()
             provider.getManga("getManga", jsEngine, ep).enqueue({
-                galleryProvider.data.clear()
-                galleryProvider.data.addAll(it)
-                galleryProvider.notifyDataChanged()
+                mangaAdapter.setNewData(it)
             }, {
                 Log.v("req err", it.toString())
             })
