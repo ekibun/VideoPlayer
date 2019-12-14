@@ -16,19 +16,32 @@
             android:scaleType="centerCrop"
             tools:ignore="ContentDescription"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/item_manga"
+    <soko.ekibun.videoplayer.ui.view.pull.PullLoadLayout
+            android:id="@+id/item_pull_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:load_fixed="true"
+            app:refresh_fixed="true"
             android:visibility="invisible"
             android:background="@android:color/black"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:theme="@style/ThemeOverlay.AppCompat.Dark">
+        <view class="soko.ekibun.videoplayer.ui.view.pull.PullLoadView$PullLoadViewPrev"
+              android:layout_width="match_parent"
+              android:layout_height="36dp"/>
+        <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/item_manga"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        <view class="soko.ekibun.videoplayer.ui.view.pull.PullLoadView$PullLoadViewNext"
+              android:layout_width="match_parent"
+              android:layout_height="36dp"/>
+    </soko.ekibun.videoplayer.ui.view.pull.PullLoadLayout>
 
     <View
             android:id="@+id/item_mask"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#55000000"/>
+            android:background="#88000000"/>
 
     <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/app_bar"
@@ -58,4 +71,44 @@
         <include android:id="@+id/subject_detail"
                  layout="@layout/subject_infolist"/>
     </androidx.core.widget.NestedScrollView>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/episode_detail_list_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:colorBackground"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:visibility="invisible"
+            tools:visibility="visible">
+
+        <ImageView android:layout_width="42dp"
+                   android:layout_height="42dp"
+                   android:padding="12dp"
+                   android:id="@+id/item_close"
+                   android:src="@drawable/ic_clear"
+                   android:clickable="true"
+                   android:background="?android:attr/selectableItemBackground"
+                   android:focusable="true"
+                   app:layout_constraintEnd_toEndOf="parent"
+                   app:layout_constraintTop_toTopOf="parent"
+                   tools:ignore="ContentDescription"/>
+
+        <TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:textAppearance="@android:style/TextAppearance.Material.Subhead"
+                  android:padding="12dp"
+                  android:text="章节"
+                  app:layout_constraintTop_toTopOf="@+id/item_close"
+                  app:layout_constraintBottom_toBottomOf="@+id/item_close"
+                  app:layout_constraintStart_toStartOf="parent"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/episode_detail_list"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                app:layout_constraintTop_toBottomOf="@+id/item_close"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:fillViewport="true"
+                android:clipToPadding="true"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

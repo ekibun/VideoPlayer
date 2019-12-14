@@ -25,6 +25,7 @@ import soko.ekibun.videoplayer.model.SubjectProvider.Companion.EXTRA_SUBJECT
 class SubjectView(val context: MangaActivity) {
     // val lineAdapter = LineAdapter() // TODO
     val episodeAdapter = SmallEpisodeAdapter(context)
+    val episodeDetailAdapter = EpisodeAdapter(context)
     val emptyView by lazy {
         val view = TextView(context)
         view.text = "点击线路加载剧集信息"
@@ -40,6 +41,9 @@ class SubjectView(val context: MangaActivity) {
         episodeAdapter.isUseEmpty(true)
         context.episode_list.adapter = episodeAdapter
         context.episode_list.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+
+        context.episode_detail_list.adapter = episodeDetailAdapter
+        context.episode_detail_list.layoutManager = LinearLayoutManager(context)
 
         val paddingTop = context.bottom_sheet.paddingTop
         val paddingBottom = context.subject_detail.paddingBottom
@@ -62,10 +66,17 @@ class SubjectView(val context: MangaActivity) {
         context.item_mask.setOnClickListener {
             showInfo(false)
         }
+
+        context.item_close.setOnClickListener {
+            showEpisodeDetail(false)
+        }
+        context.episode_detail.setOnClickListener{
+            showEpisodeDetail(true)
+        }
     }
 
     fun showInfo(show: Boolean) {
-        if (context.item_manga.visibility != View.VISIBLE) return
+        if (context.item_pull_layout.visibility != View.VISIBLE) return
 
         context.window.decorView.systemUiVisibility = if (show)
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
@@ -87,12 +98,19 @@ class SubjectView(val context: MangaActivity) {
     }
 
     fun updateEpisode(episodes: List<MangaProvider.MangaEpisode>? = null, exception: Exception? = null) {
+        context.episode_detail.text = episodes?.lastOrNull()?.let{ "更新至${it.sort}" } ?: "暂无剧集信息"
         episodeAdapter.setNewData(episodes)
+        episodeDetailAdapter.setNewData(episodes)
         emptyView.text = when {
             exception != null -> exception.message
             episodes != null -> "这里什么都没有"
             else -> "加载中..."
         }
+    }
+
+    fun showEpisodeDetail(show: Boolean){
+        context.episode_detail_list_container.visibility = if(show) View.VISIBLE else View.INVISIBLE
+        context.episode_detail_list_container.animation = AnimationUtils.loadAnimation(context, if(show) R.anim.move_in_bottom else R.anim.move_out_bottom)
     }
 
     private val weekList = listOf("", "周一", "周二", "周三", "周四", "周五", "周六", "周日")

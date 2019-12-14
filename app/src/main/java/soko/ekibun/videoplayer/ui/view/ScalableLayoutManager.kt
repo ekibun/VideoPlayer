@@ -96,6 +96,7 @@ class ScalableLayoutManager(val context: Context) : LinearLayoutManager(context)
 
 
     override fun layoutDecoratedWithMargins(child: View, left: Int, top: Int, right: Int, bottom: Int) {
+        child.item_loading?.translationX = offsetX + width * (1 - scale) / 2
         super.layoutDecoratedWithMargins(child, left - offsetX, top, right - offsetX, bottom)
     }
 

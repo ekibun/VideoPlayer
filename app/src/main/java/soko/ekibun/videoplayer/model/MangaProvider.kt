@@ -24,7 +24,12 @@ class MangaProvider(context: Context): ProviderAdapter.LineProvider<MangaProvide
         }
         fun getManga(scriptKey: String, jsEngine: JsEngine, episode: MangaEpisode): JsEngine.ScriptTask<List<ImageInfo>> {
             return JsEngine.ScriptTask(jsEngine,"var episode = ${JsonUtil.toJson(episode)};\n$getManga", scriptKey){
-                JsonUtil.toEntity<List<ImageInfo>>(it)!!
+                val ret = JsonUtil.toEntity<List<ImageInfo>>(it)!!
+                ret.forEachIndexed { index, imageInfo ->
+                    imageInfo.ep = episode
+                    imageInfo.index = index + 1
+                }
+                ret
             }
         }
         fun getImage(scriptKey: String, jsEngine: JsEngine, image: ImageInfo): JsEngine.ScriptTask<ImageRequest> {
@@ -46,7 +51,9 @@ class MangaProvider(context: Context): ProviderAdapter.LineProvider<MangaProvide
     data class ImageInfo(
         val site: String?,
         val id: String?,
-        val url: String
+        val url: String,
+        var ep: MangaEpisode? = null,
+        var index: Int = 0
     )
 
     data class ImageRequest(
