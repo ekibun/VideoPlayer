@@ -1,8 +1,8 @@
 package soko.ekibun.videoplayer.ui.view.pull
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
@@ -11,9 +11,9 @@ import com.tk.anythingpull.AnythingPullLayout
 import com.tk.anythingpull.IAction
 import com.tk.anythingpull.ILoad
 import com.tk.anythingpull.IRefresh
-import soko.ekibun.videoplayer.R
 import kotlinx.android.synthetic.main.item_pull_load.view.*
 import soko.ekibun.util.ResourceUtil
+import soko.ekibun.videoplayer.R
 
 abstract class PullLoadView constructor(context: Context, attrs: AttributeSet) : FrameLayout(context, attrs), IAction {
     abstract val hint: String
@@ -33,6 +33,7 @@ abstract class PullLoadView constructor(context: Context, attrs: AttributeSet) :
         view
     }
 
+    @SuppressLint("SwitchIntDef")
     override fun onPositionChange(touch: Boolean, distance: Int, status: Int) {
         progressDrawable.arrowEnabled = status !in arrayOf(AnythingPullLayout.REFRESH_ING, AnythingPullLayout.LOAD_ING)
         if (progressDrawable.arrowEnabled){
@@ -42,37 +43,40 @@ abstract class PullLoadView constructor(context: Context, attrs: AttributeSet) :
         }else{
             progressDrawable.alpha = 255
         }
-        view.item_hint.text = when(status){
-            AnythingPullLayout.TO_REFRESH, AnythingPullLayout.TO_LOAD -> "释放加载"
-            AnythingPullLayout.REFRESH_ING, AnythingPullLayout.LOAD_ING -> "加载中..."
-            else -> hint
+        when(status){
+            AnythingPullLayout.TO_REFRESH, AnythingPullLayout.TO_LOAD -> view.item_hint.text = "释放加载"
+            AnythingPullLayout.REFRESH_ING, AnythingPullLayout.LOAD_ING -> view.item_hint.text = "加载中..."
+            AnythingPullLayout.PRE_REFRESH, AnythingPullLayout.PRE_LOAD -> view.item_hint.text = hint
         }
         if (status == AnythingPullLayout.TO_REFRESH) view.item_hint.text = "释放加载"
     }
 
     fun onPullLoadFinish(success: Boolean) {
         progressDrawable.stop()
-        view.item_hint.visibility = View.GONE
+        view.item_progress.visibility = View.INVISIBLE
+        view.item_hint.visibility = View.VISIBLE
         view.item_hint.text = if (success) "加载成功" else "加载失败"
     }
 
     fun onPullLoadStart() {
         progressDrawable.start()
+        view.item_progress.visibility = View.VISIBLE
         view.item_hint.visibility = View.VISIBLE
         view.item_hint.text = "加载中..."
     }
 
     override fun preShow() {
         view.item_hint.text = hint
+        view.item_progress.visibility = View.VISIBLE
         view.item_hint.visibility = View.VISIBLE
     }
 
     override fun preDismiss() {
-        preShow()
+        // preShow()
     }
 
     override fun onDismiss() {
-        preShow()
+        // preShow()
     }
 
     class PullLoadViewPrev(context: Context, attrs: AttributeSet) : PullLoadView(context, attrs), IRefresh {

@@ -637,7 +637,7 @@ public class PullLoadLayout extends ViewGroup {
                     processPosition(refreshDistance, 0, refreshCloseDuring, 1, -1, INIT);
                     break;
                 }
-                if (mStatus == REFRESH_ING || (refreshDistance >= refreshViewHeight * swipeFactor && refreshViewHeight > 0)) {
+                if ((mStatus == REFRESH_ING && refreshDistance >= refreshViewHeight) || (refreshDistance >= refreshViewHeight * swipeFactor && refreshViewHeight > 0)) {
                     //回弹至触发下拉刷新
                     processPosition(refreshDistance, refreshViewHeight, refreshCloseDuring, 1, -1, REFRESH_ING);
                     break;
@@ -647,7 +647,7 @@ public class PullLoadLayout extends ViewGroup {
                     processPosition(loadDistance, 0, loadCloseDuring, -1, 1, INIT);
                     break;
                 }
-                if (mStatus == LOAD_ING || (loadDistance >= loadViewHeight * swipeFactor && loadViewHeight > 0)) {
+                if ((mStatus == LOAD_ING && loadDistance >= loadViewHeight) || (loadDistance >= loadViewHeight * swipeFactor && loadViewHeight > 0)) {
                     //回弹至触发下拉刷新
                     processPosition(loadDistance, loadViewHeight, loadCloseDuring, -1, 1, LOAD_ING);
                     break;
@@ -751,6 +751,7 @@ public class PullLoadLayout extends ViewGroup {
     public void responseRefresh(boolean success) {
         if (iRefresh != null && mStatus == REFRESH_ING) {
             iRefresh.onRefreshFinish(success);
+            mStatus = REFRESH_RESULT;
             postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -769,6 +770,7 @@ public class PullLoadLayout extends ViewGroup {
     public void responseload(boolean success) {
         if (iLoad != null && mStatus == LOAD_ING) {
             iLoad.onLoadFinish(success);
+            mStatus = LOAD_RESULT;
             postDelayed(new Runnable() {
                 @Override
                 public void run() {
