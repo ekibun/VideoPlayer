@@ -5,12 +5,15 @@ import android.app.AlertDialog
 import android.content.*
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.jaredrummler.android.colorpicker.ColorPickerDialog
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
@@ -50,7 +53,26 @@ class ProviderActivity : AppCompatActivity(), ColorPickerDialogListener {
             insets
         }
 
-        item_codes.layoutManager = LinearLayoutManager(this)
+        item_codes.layoutManager = object: LinearLayoutManager(this) {
+            override fun requestChildRectangleOnScreen(
+                parent: RecyclerView,
+                child: View,
+                rect: Rect,
+                immediate: Boolean
+            ): Boolean {
+                return false
+            }
+
+            override fun requestChildRectangleOnScreen(
+                parent: RecyclerView,
+                child: View,
+                rect: Rect,
+                immediate: Boolean,
+                focusedChildVisible: Boolean
+            ): Boolean {
+                return false
+            }
+        }
 
         item_provider_color_hex.text = colorToString(0)
         setProvider(intent?.getStringExtra(EXTRA_PROVIDER_INFO))

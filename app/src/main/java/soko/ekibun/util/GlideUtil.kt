@@ -12,10 +12,10 @@ import androidx.fragment.app.FragmentActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.model.GlideUrl
-import com.bumptech.glide.load.model.Headers
 import com.bumptech.glide.request.target.ImageViewTarget
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
+import soko.ekibun.videoplayer.model.MangaProvider
 
 /**
  * 防止Glide崩溃
@@ -29,9 +29,9 @@ object GlideUtil {
     /**
      * Glide进度
      */
-    fun loadWithProgress(url: String, view: ImageView, onProgress: (Float)->Unit, callback: (Int, Drawable?) -> Unit): Target<Drawable>? {
+    fun loadWithProgress(req: MangaProvider.ImageRequest, view: ImageView, onProgress: (Float)->Unit, callback: (Int, Drawable?) -> Unit): Target<Drawable>? {
         val request = with(view) ?: return null
-        ProgressAppGlideModule.expect(url, object : ProgressAppGlideModule.UIonProgressListener {
+        ProgressAppGlideModule.expect(req.url, object : ProgressAppGlideModule.UIonProgressListener {
             override fun onProgress(bytesRead: Long, expectedLength: Long) {
                 onProgress(bytesRead * 1f / expectedLength)
             }
@@ -40,7 +40,7 @@ object GlideUtil {
                 return 1.0f
             }
         })
-        return request.asDrawable().load(GlideUrl(url, Headers { mapOf("referer" to url) })).into(object : ImageViewTarget<Drawable>(view) {
+        return request.asDrawable().load(GlideUrl(req.url) {  if(!req.header.containsKey("referer")) req.header.plus("referer" to req.url) else req.header }).into(object : ImageViewTarget<Drawable>(view) {
             override fun onLoadStarted(placeholder: Drawable?) {
                 super.onLoadStarted(placeholder)
                 callback(TYPE_PLACEHOLDER, placeholder)
@@ -62,7 +62,7 @@ object GlideUtil {
             }
 
             override fun onDestroy() {
-                ProgressAppGlideModule.forget(url)
+                ProgressAppGlideModule.forget(req.url)
             }
 
             override fun setResource(resource: Drawable?) {

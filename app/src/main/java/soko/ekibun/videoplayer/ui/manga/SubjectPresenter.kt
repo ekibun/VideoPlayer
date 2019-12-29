@@ -160,7 +160,9 @@ class SubjectPresenter(val context: MangaActivity) {
                     popList.anchorView = context.episodes_line
                     val lines = ArrayList(infos.providers)
                     lines.add(LineInfoModel.LineInfo("", "添加线路"))
-                    popList.setAdapter(LineAdapter(context, lines))
+                    val adapter = LineAdapter(context, lines)
+                    adapter.selectIndex = infos.defaultProvider
+                    popList.setAdapter(adapter)
                     popList.isModal = true
                     popList.show()
                     popList.listView?.setOnItemClickListener { _, _, position, _ ->

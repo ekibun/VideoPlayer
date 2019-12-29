@@ -41,7 +41,7 @@ class MangaAdapter(context: Context, data: MutableList<MangaProvider.ImageInfo>?
                 setImage(helper, item, it)
             }, {
                 if(helper.itemView.tag == item){
-                    showError(helper, "接口错误")
+                    showError(helper, "接口错误\n${it.message}")
                 }
             })?: {
                 showError(helper, "接口不存在")
@@ -58,7 +58,7 @@ class MangaAdapter(context: Context, data: MutableList<MangaProvider.ImageInfo>?
 
     private fun setImage(helper: BaseViewHolder, item: MangaProvider.ImageInfo, imageRequest: MangaProvider.ImageRequest){
         helper.itemView.loading_progress.progress = 0
-        GlideUtil.loadWithProgress(imageRequest.url, helper.itemView.item_image,  {
+        GlideUtil.loadWithProgress(imageRequest, helper.itemView.item_image,  {
             helper.itemView.loading_progress.isIndeterminate = false
             if(helper.itemView.tag == item) helper.itemView.loading_progress.progress = (it * 100).toInt()
         }, { type, drawable ->
